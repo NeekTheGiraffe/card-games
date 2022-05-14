@@ -30,7 +30,7 @@ const auth = firebase.auth();
 const firestore = firebase.firestore();
 const analytics = firebase.analytics();
 
-function App() {
+function App(props) {
 
   const [user] = useAuthState(auth);
 
@@ -42,7 +42,7 @@ function App() {
         </header>
 
         <section>
-          {user ? <SignOut /> : <SignIn />}
+          {props.request == "home" ? <Home/> : <Profile/>}
         </section>
       </SuspenseWithPerf>
     </div>
@@ -58,7 +58,7 @@ function SignIn() {
 
   return (
     <>
-      <button className="sign-in" onClick={signInWithGoogle}>Sign in with Google</button>
+      <a class="navbar-item" onClick={signInWithGoogle}>Sign in with Google</a>
     </>
   )
 
@@ -66,14 +66,15 @@ function SignIn() {
 
 function SignOut() {
   return auth.currentUser && (
-    <button className="sign-out" onClick={() => auth.signOut()}>Sign Out</button>
+    <a class="navbar-item" onClick={() => auth.signOut()}>Sign Out</a>
   )
 }
 
 
 function Navbar() {
+  const [user] = useAuthState(auth);
   return (
-    <nav class='navbar'>
+    <nav class='navbar has-shadow'>
       <div class='navbar-brand'>
         <a class='navbar-item'>The Card Game Cowboys</a>
       </div>
@@ -81,12 +82,11 @@ function Navbar() {
         <div class='navbar-start'></div>
         <div class='navbar-end'>
           <a class="navbar-item">Home</a>
-          <a class="navbar-item">Profile Page</a>
+          {user ? <SignOut /> : <SignIn />}
         </div>
       </div>
     </nav>
   );
 }
-
 
 export default App;
