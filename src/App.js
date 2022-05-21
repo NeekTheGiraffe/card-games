@@ -1,10 +1,6 @@
 import './App.css';
+import { firebaseConfig } from './firebaseConfig.js';
 
-
-// Firebase SDK
-//import firebase from 'firebase/compat/app';
-//import 'firebase/firestore';
-//import 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, GoogleAuthProvider } from 'firebase/auth';
 import { collection, addDoc, getFirestore, serverTimestamp, orderBy, query, limit } from 'firebase/firestore';
@@ -14,15 +10,8 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { useRef, useState } from 'react';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyD4v9r7gjjOlnxjC7LcGFmUblUNtY-ZYCI",
-  authDomain: "card-games-cdfd4.firebaseapp.com",
-  projectId: "card-games-cdfd4",
-  storageBucket: "card-games-cdfd4.appspot.com",
-  messagingSenderId: "858939872015",
-  appId: "1:858939872015:web:543b15642bacd03a78e47a",
-  measurementId: "G-KJB06V9C8J"
-};
+import { Blackjack } from './Blackjack';
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore(app);
@@ -48,6 +37,9 @@ function App() {
 
   return (
     <div className="App">
+      <Blackjack/>
+      
+      <h1>Chat</h1>
       <SignOut />
 
       <section>
