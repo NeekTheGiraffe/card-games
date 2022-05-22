@@ -3,7 +3,7 @@ import { firebaseConfig } from './firebaseConfig.js';
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import { getDatabase, ref, get, set, child } from 'firebase/database';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
 
@@ -13,7 +13,7 @@ import { ChatRoom } from './ChatRoom';
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
-const db = getFirestore(app);
+const db = getDatabase(app);
 
 function App() {
 
@@ -36,17 +36,21 @@ function App() {
   );
 }
 
+const defaultProfile = {
+  displayName: 'Cowboy',
+  profilePicture: 'snake'
+};
+
 // If a user profile doesn't exist, then create one
 const createUserProfile = async (uid) => {
-  const docRef = doc(db, "users", uid);
-  const docSnap = await getDoc(docRef); // document snapshot
+  console.log(`users/${uid}`);
 
-  if (!docSnap.exists())
+  const profileSnap = await get(child(ref(db), `users/${uid}`));
+
+  if (!profileSnap.exists())
   {
-    await setDoc(docRef, {
-      blackjackRecord: { wins: 0, losses: 0, ties: 0 }
-    });
-
+    const profileRef = ref(db, `users/${uid}`);
+    await set(profileRef, defaultProfile);
     return "Hello! Created user profile.";
   }
   return "Welcome back!";

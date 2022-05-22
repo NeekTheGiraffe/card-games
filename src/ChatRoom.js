@@ -1,39 +1,37 @@
 import { useRef, useState } from 'react';
-import { useCollectionData } from 'react-firebase-hooks/firestore';
-import { collection, addDoc, serverTimestamp, orderBy, query } from 'firebase/firestore';
+import { useObjectVal } from 'react-firebase-hooks/database';
+import { ref, query, orderByChild, serverTimestamp, push } from 'firebase/database';
 
 export const ChatRoom = props =>
 {
   const dummy = useRef();
 
-  const messagesRef = collection(props.db, 'messages').withConverter(messageConverter);
-  const q = query(messagesRef, orderBy('createdAt'));
-  const [messages] = useCollectionData(q);
+  const messagesRef = query(ref(props.db, 'messages'), orderByChild('createdAt'));
+  const [messages] = useObjectVal(messagesRef);
 
   const [formValue, setFormValue] = useState('');
 
-  const sendMessage = async(e) => {
+  const sendMessage = async (event) => {
 
-    e.preventDefault(); // Prevent the page from being refreshed
+    event.preventDefault(); // Prevent the page from being refreshed
     const { uid, photoURL } = props.auth.currentUser;
-    await addDoc(messagesRef, {
+    const messageData = {
       text: formValue,
       createdAt: serverTimestamp(),
-      uid,
-      photoURL
-    });
+      uid: uid,
+      photoURL: photoURL
+    };
+    await push(ref(props.db, 'messages'), messageData);
 
     setFormValue('');
 
     dummy.current.scrollIntoView({ behavior: 'smooth' });
   }
 
-  //if (messages) { messages.forEach(msg => console.log(msg)); }
-
   return (
     <div>
       <div>
-        {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg} auth={props.auth} />)}
+        {messages && Object.keys(messages).map(key => <ChatMessage key={key} message={messages[key]} auth={props.auth}/>)}
 
         <div ref={dummy}></div>
       </div>
@@ -61,14 +59,3 @@ const ChatMessage = props =>
     </div>
   );
 }
-
-const messageConverter = {
-  toFirestore: msg => { return { text: msg.text, createdAt: msg.createdAt, uid: msg.uid, photoURL: msg.photoURL }; }, // Unused
-  fromFirestore: (snapshot, options) => {
-    const data = snapshot.data(options);
-    return {
-      ...data,
-      id: snapshot.id
-    };
-  }
-};

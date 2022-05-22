@@ -1,7 +1,9 @@
-import { doc, runTransaction } from "firebase/firestore";
+import { ref, runTransaction } from "firebase/database";
 import React from "react";
 import { blackjackAbsSum, blackjackSum, dealOne, playable, dealerPlayable, isFaceOr10,
   shuffle, freshDeck, cardsToString } from "./cards";
+
+const defaultRecord = { wins: 0, losses: 0, ties: 0 };
 
 export class Blackjack extends React.Component {
 
@@ -127,16 +129,14 @@ export class Blackjack extends React.Component {
     const { auth, db } = this.props;
     const user = auth.currentUser;
     if (!user) return; // No one is signed in
-    const docRef = doc(db, "users", user.uid);
+    const recordRef = ref(db, `stats/blackjackSolo/${user.uid}`);
     // Use a transaction as an atomic increment
-    runTransaction(db, async (transaction) => {
-      const profile = await transaction.get(docRef);
-      if (!profile.exists()) throw new Error("Document does not exist!");
-      const oldRecord = profile.data().blackjackRecord;
-      const newRecord = { ...oldRecord, [result]: oldRecord[result] + 1 };
-      transaction.update(docRef, { blackjackRecord: newRecord });
+    runTransaction(recordRef, record => {
+      if (!record) record = defaultRecord;
+      record[result]++;
+      return record;
     })
-      .then(res => console.log("Successfully updated database"))
+      .then(res => console.log(`Successfully updated record`))
       .catch(err => console.error(err.message));
   }
 
