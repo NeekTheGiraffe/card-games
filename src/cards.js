@@ -82,7 +82,7 @@ export const isBlackjack = cards =>
   for (let c = 0; c < 2; c++)
   {
     if (!ace && cards[c].rank === 'A') ace = true;
-    if (!face && FACES.includes(cards[c].rank)) face = true;
+    if (!face && isFaceOr10(cards[c].rank)) face = true;
   }
   return ace && face;
 }

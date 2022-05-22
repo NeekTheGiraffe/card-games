@@ -1,3 +1,4 @@
+import { doc, runTransaction } from "firebase/firestore";
 import React from "react";
 import { blackjackAbsSum, blackjackSum, dealOne, playable, dealerPlayable, isFaceOr10,
   shuffle, freshDeck, cardsToString } from "./cards";
@@ -28,28 +29,29 @@ export class Blackjack extends React.Component {
     let dealerFirstCard = dealOne(newDeck, newDealer, true);
     dealOne(newDeck, newPlayer, true);
     dealOne(newDeck, newDealer, false);
-    console.log("Dealt the cards");
+    //console.log("Dealt the cards");
     
     // If the dealer's first card is a face or ace, check if it's a natural
     if (dealerFirstCard.rank === 'A' || isFaceOr10(dealerFirstCard.rank))
     {
-      console.log(`Dealer's first card is ${dealerFirstCard.rank}, checking their second card...`);
+      //console.log(`Dealer's first card is ${dealerFirstCard.rank}, checking their second card...`);
       if (blackjackAbsSum(newDealer) === 21)
       {
-        console.log("The dealer has a natural!");
+        //console.log("The dealer has a natural!");
         this.finishDealersTurn(newDealer);
       }
       else
       {
-        console.log("The dealer doesn't have a natural.");
+        //console.log("The dealer doesn't have a natural.");
       }
     }
+    this.handleGameOver(newPlayer, newDealer, false);
     this.setState({ player: newPlayer, deck: newDeck, dealer: newDealer, hasDealt: true });
   }
 
   hit()
   {
-    let { player, deck, dealer } = this.state;
+    const { player, deck, dealer, stay } = this.state;
     let di = deck.length - 1;
     let newPlayer = player.concat(deck[di]);
     let newDeck = deck.slice(0, -1);
@@ -57,16 +59,29 @@ export class Blackjack extends React.Component {
     let sum = blackjackSum(newPlayer);
     if (sum !== 'Bust!' && !playable(sum))
       this.dealersTurn(newDealer, newDeck);
+    this.handleGameOver(newPlayer, newDealer, stay);
     this.setState({ player: newPlayer, deck: newDeck, dealer: newDealer });
   }
 
   stay()
   {
-    let { dealer, deck } = this.state;
+    const { player, dealer, deck } = this.state;
     let newDealer = dealer.slice();
     let newDeck = deck.slice();
     this.dealersTurn(newDealer, newDeck);
+    this.handleGameOver(player, newDealer, true);
     this.setState({ dealer: newDealer, deck: newDeck, stay: true });
+  }
+
+  nextHand()
+  {
+    // Throw away each player's cards, but keep the deck the same
+    this.setState({
+      player: [],
+      dealer: [],
+      hasDealt: false,
+      stay: false
+    });
   }
 
   dealersTurn(dealer, deck)
@@ -81,17 +96,6 @@ export class Blackjack extends React.Component {
   finishDealersTurn(dealer)
   {
     dealer[1].faceUp = true;
-  }
-  
-  nextHand()
-  {
-    // Throw away each player's cards, but keep the deck the same
-    this.setState({
-      player: [],
-      dealer: [],
-      hasDealt: false,
-      stay: false
-    });
   }
 
   calculateWinner(player, dealer)
@@ -111,13 +115,43 @@ export class Blackjack extends React.Component {
     return 'Tie!';
   }
 
+  gameIsOver(player, dealer, stay)
+  {
+    if (blackjackSum(dealer) === 'Blackjack!') return true;
+    else if (playable(blackjackSum(player)) && !stay) return false;
+    else return true;
+  }
+
+  incrementOnServer(result)
+  {
+    const { auth, db } = this.props;
+    const user = auth.currentUser;
+    if (!user) return; // No one is signed in
+    const docRef = doc(db, "users", user.uid);
+    // Use a transaction as an atomic increment
+    runTransaction(db, async (transaction) => {
+      const profile = await transaction.get(docRef);
+      if (!profile.exists()) throw new Error("Document does not exist!");
+      const oldRecord = profile.data().blackjackRecord;
+      const newRecord = { ...oldRecord, [result]: oldRecord[result] + 1 };
+      transaction.update(docRef, { blackjackRecord: newRecord });
+    })
+      .then(res => console.log("Successfully updated database"))
+      .catch(err => console.error(err.message));
+  }
+
+  handleGameOver(player, dealer, stay)
+  {
+    if (!this.gameIsOver(player, dealer, stay)) return; // Game isn't over; no need to update database
+    const winner = this.calculateWinner(player, dealer);
+    const winnerMap = { 'Player!': 'wins', 'Dealer!': 'losses', 'Tie!': 'ties' };
+    this.incrementOnServer(winnerMap[winner]);
+  }
+
   render()
   {
     let { hasDealt, dealer, deck, player, stay } = this.state;
-    let done;
-    if (blackjackSum(dealer) === 'Blackjack!') done = true;
-    else if (playable(blackjackSum(player)) && !stay) done = false;
-    else done = true;
+    let done = this.gameIsOver(player, dealer, stay);
     let dealerSum;
     if (dealer.length === 0) dealerSum = 0;
     else if (dealer[1].faceUp) dealerSum = blackjackSum(dealer);

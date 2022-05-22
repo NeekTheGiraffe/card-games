@@ -3,7 +3,10 @@ import { firebaseConfig } from './firebaseConfig.js';
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, GoogleAuthProvider } from 'firebase/auth';
-import { collection, addDoc, getFirestore, serverTimestamp, orderBy, query, limit } from 'firebase/firestore';
+import { collection, addDoc, getFirestore, serverTimestamp, orderBy, query,
+  doc, 
+  setDoc,
+  getDoc} from 'firebase/firestore';
 
 // Hooks
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -11,6 +14,7 @@ import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { useRef, useState } from 'react';
 
 import { Blackjack } from './Blackjack';
+import { UserProfile } from './UserProfile';
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
@@ -37,8 +41,10 @@ function App() {
 
   return (
     <div className="App">
-      <Blackjack/>
+      <Blackjack db={db} auth={auth}/>
       
+      {user && <UserProfile db={db} uid={user.uid}/>}
+
       <h1>Chat</h1>
       <SignOut />
 
@@ -49,12 +55,29 @@ function App() {
   );
 }
 
+const createUserProfile = async (uid) => {
+  const docRef = doc(db, "users", uid);
+  const docSnap = await getDoc(docRef); // document snapshot
+
+  // If a user profile doesn't exist, then create one
+  if (!docSnap.exists())
+  {
+    await setDoc(docRef, {
+      blackjackRecord: { wins: 0, losses: 0, ties: 0 }
+    });
+
+    return "Hello! Created user profile.";
+  }
+  return "Welcome back!";
+}
+
 function SignIn()
 {
   const signInWithGoogle = () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
-      .then(res => console.log(res.user))
+      .then(res => createUserProfile(res.user.uid)) // Create a new profile for the person logging on, if they don't have one yet
+      .then(res => console.log(res))
       .catch(error => console.error(error.messsage));
   }
 
