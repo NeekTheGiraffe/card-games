@@ -5,11 +5,23 @@ import { db, auth } from './App';
 
 export const ChatRoom = props =>
 {
-  const dummy = useRef();
-
   const messagesRef = query(ref(db, 'messages'), orderByChild('createdAt'));
   const [messages] = useObjectVal(messagesRef);
 
+  return (
+    <div>
+      <div>
+        {messages && Object.keys(messages).map(key => <ChatMessage key={key} message={messages[key]} auth={props.auth}/>)}
+      </div>
+
+      <ChatForm />
+    </div>
+  );
+}
+
+const ChatForm = props =>
+{
+  const dummy = useRef();
   const [formValue, setFormValue] = useState('');
 
   const sendMessage = async (event) => {
@@ -25,25 +37,15 @@ export const ChatRoom = props =>
     await push(ref(db, 'messages'), messageData);
 
     setFormValue('');
-
     dummy.current.scrollIntoView({ behavior: 'smooth' });
   }
 
   return (
-    <div>
-      <div>
-        {messages && Object.keys(messages).map(key => <ChatMessage key={key} message={messages[key]} auth={props.auth}/>)}
-
-        <div ref={dummy}></div>
-      </div>
-
-      <form onSubmit={sendMessage}>
-        <input value={formValue} onChange={e => setFormValue(e.target.value)}/>
-
-        <button type="submit">🕊️</button>
-
-      </form>
-    </div>
+    <form onSubmit={sendMessage}>
+      <input value={formValue} onChange={e => setFormValue(e.target.value)}/>
+      <button type="submit">🕊️</button>
+      <div ref={dummy}></div>
+    </form>
   );
 }
 
