@@ -1,9 +1,10 @@
 import { get, push, ref, runTransaction } from "firebase/database";
 import { useObjectVal } from "react-firebase-hooks/database";
+import { db, auth } from "./App";
 
 export const Lobby = props => {
-
-  const [lobby] = useObjectVal(ref(props.db, `lobbies/${props.lobbyId}`));
+  
+  const [lobby] = useObjectVal(ref(db, `lobbies/${props.lobbyId}`));
   let numPlayers, capacity, players, game, playerList, leaderId;
   if (lobby) {
     ({ numPlayers, capacity, players, game, leaderId } = lobby);
@@ -20,12 +21,12 @@ export const Lobby = props => {
       <h1>Lobby: {game}</h1>
       <h2>Players: {numPlayers}/{capacity}</h2>
       <ul>{playerList}</ul>
-      <button onClick={() => leaveLobby(props.db, props.lobbyId, props.uid)}>Leave lobby</button>
+      <button onClick={() => leaveLobby(props.lobbyId, auth.currentUser.uid)}>Leave lobby</button>
     </div>
   );
 };
 
-export const LobbyListing = ({ db, lobbyId, auth }) => {
+export const LobbyListing = ({ lobbyId }) => {
   
   return (
     <div>
@@ -37,7 +38,7 @@ export const LobbyListing = ({ db, lobbyId, auth }) => {
   );
 };
 
-export const createLobby = async (db, leaderUid) => {
+export const createLobby = async (leaderUid) => {
   // TODO: Let capacity and game be parameters
   const leaderRef = ref(db, `users/${leaderUid}`);
   const leaderSnap = await get(leaderRef);
@@ -58,7 +59,7 @@ export const createLobby = async (db, leaderUid) => {
   return lobbyRef;
 };
 
-export const leaveLobby = async (db, lobbyId, uid) => {
+export const leaveLobby = async (lobbyId, uid) => {
   await runTransaction(ref(db, `users/${uid}`), user =>{
     user.lobbyId = null;
     return user;
@@ -77,7 +78,7 @@ export const leaveLobby = async (db, lobbyId, uid) => {
   });
 };
 
-export const joinLobby = async (db, uid, lobbyId) => {
+export const joinLobby = async (uid, lobbyId) => {
   const userRef = ref(db, `users/${uid}`);
   const userSnap = await get(userRef);
   const { displayName, profilePicture } = userSnap.val();

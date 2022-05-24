@@ -2,6 +2,7 @@ import { ref, runTransaction } from "firebase/database";
 import React from "react";
 import { blackjackAbsSum, blackjackSum, dealOne, playable, dealerPlayable, isFaceOr10,
   shuffle, freshDeck, cardsToString } from "./cards";
+import { db, auth } from "./App";
 
 const defaultRecord = { wins: 0, losses: 0, ties: 0 };
 
@@ -126,7 +127,6 @@ export class Blackjack extends React.Component {
 
   incrementOnServer(result)
   {
-    const { auth, db } = this.props;
     const user = auth.currentUser;
     if (!user) return; // No one is signed in
     const recordRef = ref(db, `stats/blackjackSolo/${user.uid}`);

@@ -1,12 +1,13 @@
 import { useRef, useState } from 'react';
 import { useObjectVal } from 'react-firebase-hooks/database';
 import { ref, query, orderByChild, serverTimestamp, push } from 'firebase/database';
+import { db, auth } from './App';
 
 export const ChatRoom = props =>
 {
   const dummy = useRef();
 
-  const messagesRef = query(ref(props.db, 'messages'), orderByChild('createdAt'));
+  const messagesRef = query(ref(db, 'messages'), orderByChild('createdAt'));
   const [messages] = useObjectVal(messagesRef);
 
   const [formValue, setFormValue] = useState('');
@@ -14,14 +15,14 @@ export const ChatRoom = props =>
   const sendMessage = async (event) => {
 
     event.preventDefault(); // Prevent the page from being refreshed
-    const { uid, photoURL } = props.auth.currentUser;
+    const { uid, photoURL } = auth.currentUser;
     const messageData = {
       text: formValue,
       createdAt: serverTimestamp(),
       uid: uid,
       photoURL: photoURL
     };
-    await push(ref(props.db, 'messages'), messageData);
+    await push(ref(db, 'messages'), messageData);
 
     setFormValue('');
 
@@ -50,7 +51,7 @@ const ChatMessage = props =>
 {
   const { text, uid, photoURL } = props.message;
 
-  const messageClass = uid === props.auth.currentUser.uid ? 'sent' : 'received';
+  const messageClass = uid === auth.currentUser.uid ? 'sent' : 'received';
 
   return (
     <div className={`message ${messageClass}`}>
