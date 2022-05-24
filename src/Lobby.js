@@ -3,7 +3,7 @@ import { useObjectVal } from "react-firebase-hooks/database";
 import { db, auth } from "./App";
 
 export const Lobby = props => {
-  
+
   const [lobby] = useObjectVal(ref(db, `lobbies/${props.lobbyId}`));
   let numPlayers, capacity, players, game, playerList, leaderId;
   if (lobby) {
@@ -32,7 +32,7 @@ export const LobbyListing = ({ lobbyId }) => {
     <div>
       <span>
         Lobby {lobbyId}
-        <button onClick={() => joinLobby(db, auth.currentUser.uid, lobbyId)}>Join</button>
+        <button onClick={() => joinLobby(auth.currentUser.uid, lobbyId)}>Join</button>
       </span>
     </div>
   );
@@ -45,7 +45,7 @@ export const createLobby = async (leaderUid) => {
   const { displayName, profilePicture } = leaderSnap.val();
   const lobbyData = {
     numPlayers: 1,
-    capacity: 3,
+    capacity: 1,
     game: 'blackjack',
     leaderId: leaderUid,
     players: [{ uid: leaderUid, displayName, profilePicture }]
@@ -82,17 +82,15 @@ export const joinLobby = async (uid, lobbyId) => {
   const userRef = ref(db, `users/${uid}`);
   const userSnap = await get(userRef);
   const { displayName, profilePicture } = userSnap.val();
+  let success = false;
   await runTransaction(ref(db, `lobbies/${lobbyId}`), lobby => {
     if (lobby.numPlayers >= lobby.capacity) return; // Lobby is full, abort
-    //console.log(lobby);
+    success = true;
     lobby.players.push({ uid, displayName, profilePicture });
     lobby.numPlayers++;
     return lobby;
-  }, (error, committed, snapshot) => {
-    // If aborted, then throw an error
-    if (error) throw new Error('Could not join lobby');
-    else if (!committed) throw new Error('Lobby is full!');
   });
+  if (!success) throw new Error('Lobby is full');
   await runTransaction(userRef, user => {
     user.lobbyId = lobbyId;
     return user;
