@@ -10,6 +10,8 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { Blackjack } from './Blackjack';
 import { UserProfile } from './UserProfile';
 import { ChatRoom } from './ChatRoom';
+import { Lobby, createLobby, LobbyListing } from './Lobby';
+import { useObjectVal } from 'react-firebase-hooks/database';
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
@@ -19,16 +21,25 @@ function App() {
 
   // Will be an object if user is signed in, null if not
   const [user] = useAuthState(auth);
+  const userInfoRef = user && ref(db, `users/${user.uid}`);
+  const [userInfo] = useObjectVal(userInfoRef);
+  const lobbyId = userInfo && userInfo.lobbyId;
+
+  const lobbiesRef = !lobbyId && ref(db, 'lobbies');
+  const [lobbies] = useObjectVal(lobbiesRef);
 
   return (
     <div className="App">
+
+      {lobbies && Object.keys(lobbies).map(lobbyId => <LobbyListing key={lobbyId} db={db} auth={auth} lobbyId={lobbyId} />)}
+      {!lobbyId && <button onClick={() => createLobby(db, user.uid)}>Create lobby</button>}
+      {lobbyId && user && <Lobby db={db} lobbyId={lobbyId} uid={user.uid}/>}
+    
       <Blackjack db={db} auth={auth}/>
       
       {user && <UserProfile db={db} uid={user.uid}/>}
-
       <h1>Chat</h1>
       <SignOut />
-
       <section>
         {user ? <ChatRoom db={db} auth={auth}/> : <SignIn />}
       </section>
