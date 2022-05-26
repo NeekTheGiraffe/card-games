@@ -50,6 +50,14 @@ export const blackjackSum = cards =>
   return sum > 21 ? 'Bust!' : sum;
 };
 
+export const blackjackSumHidden = cards => {
+  for (let i = 0; i < cards.length; i++)
+  {
+    if (!cards[i].faceUp) return '??';
+  }
+  return blackjackSum(cards);
+};
+
 export const dealOne = (deck, toWhom, faceUp) =>
 {
   let card = deck[deck.length - 1];
