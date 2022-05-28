@@ -3,12 +3,12 @@ import { firebaseConfig } from './firebaseConfig.js';
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, GoogleAuthProvider } from 'firebase/auth';
-import { getDatabase, ref, get, set, child } from 'firebase/database';
+import { getDatabase, ref } from 'firebase/database';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
 
 import { Blackjack } from './Blackjack';
-import { UserProfile } from './UserProfile';
+import { UserProfile, createUserProfile } from './UserProfile';
 import { ChatRoom } from './ChatRoom';
 import { Lobby, createLobby, LobbyListing } from './Lobby';
 import { useObjectVal } from 'react-firebase-hooks/database';
@@ -46,26 +46,6 @@ function App() {
       </section>
     </div>
   );
-}
-
-const defaultProfile = {
-  displayName: 'Cowboy',
-  profilePicture: 'snake'
-};
-
-// If a user profile doesn't exist, then create one
-const createUserProfile = async (uid) => {
-  console.log(`users/${uid}`);
-
-  const profileSnap = await get(child(ref(db), `users/${uid}`));
-
-  if (!profileSnap.exists())
-  {
-    const profileRef = ref(db, `users/${uid}`);
-    await set(profileRef, defaultProfile);
-    return "Hello! Created user profile.";
-  }
-  return "Welcome back!";
 }
 
 function SignIn()
