@@ -87,13 +87,19 @@ export const BlackjackPlayer = props => {
 // TODO: Parametrize numPlayers/lobby size
 
 export const startGame = async (lobbyId) => {
+  let success = false;
+  let numPlayers = -999;
   await runTransaction(ref(db, `lobbies/${lobbyId}`), lobby => {
+    if (lobby.numPlayers !== lobby.capacity) return;
+    success = true;
+    numPlayers = lobby.numPlayers;
     lobby.lobStatus = 'in-game';
     return lobby;
   });
+  if (!success) throw new Error('Lobby is not ready to start game');
   return runTransaction(bjGameRef(lobbyId), game => {
     const gameData = {
-      table: { whoseTurn: -1, numPlayers: 2 }, // table stores all visible data for UI
+      table: { whoseTurn: -1, numPlayers: numPlayers }, // table stores all visible data for UI
       deck: shuffle(freshDeck()) // deck is only read/written when necessary
     };
     gameData.table.deckLength = gameData.deck.length;
@@ -118,10 +124,11 @@ const deal = async (lobbyId) => {
   let incrementArr = null;
   await runTransaction(bjGameRef(lobbyId), game => {
     if (game == null) return 0;
+    if (game.table.whoseTurn !== -1) return;
     const cardsPerPlayer = 2;
     if (game.table.deckLength * cardsPerPlayer < (game.table.numPlayers + 1)) return; // Not enough cards to deal
     // Deal all cards
-    game.table.players = [[], [], []];
+    game.table.players = Array.from(Array(game.table.numPlayers + 1), () => []);
     for (let i = 0; i < cardsPerPlayer; i++)
     {
       game.table.players.forEach(player => {
@@ -159,7 +166,8 @@ const deal = async (lobbyId) => {
 const hit = async (lobbyId) => {
   let incrementArr = null;
   await runTransaction(bjGameRef(lobbyId), game => {
-    if (!game || !game.table || !game.deck) return 0;
+    if (game == null) return 0;
+    if (game.table.whoseTurn < 0 || game.table.whoseTurn >= game.table.numPlayers) return;
     // Deal one card
     dealOne(game.deck, game.table.players[game.table.whoseTurn], true);
     //console.log('got through it');
@@ -188,9 +196,10 @@ const hit = async (lobbyId) => {
 };
 
 const stay = async (lobbyId) => {
-  let incrementArr = false;
+  let incrementArr = null;
   await runTransaction(bjGameRef(lobbyId), game => {
-    if (!game || !game.table || !game.deck) return 0;
+    if (game == null) return 0;
+    if (game.table.whoseTurn < 0 || game.table.whoseTurn >= game.table.numPlayers) return;
     if (nextPlayer(game)) incrementArr = calculateIncrements(game);
     game.table.deckLength = game.deck.length;
 
@@ -211,7 +220,7 @@ const nextHand = async (lobbyId) => {
     return lobby;
   });
   return runTransaction(bjGameRef(lobbyId), game => {
-    if (!game || !game.table) return 0;
+    if (game == null) return 0;
     // Clear the hands of all players
     game.table.players = {};
     game.table.whoseTurn = -1;
@@ -300,8 +309,9 @@ const nextPlayer = game => {
   if (game.table.whoseTurn !== game.table.numPlayers) return false;
 
   // If it's the dealer's turn, do their turn.
-  dealersTurn(game.table.players[game.table.whoseTurn], game.deck);
-  // TODO: Don't have the dealer turn over their cards if everyone busted
+  let everyoneElseBusted = true;
+  game.table.players.slice(0, -1).forEach(player => { if (blackjackSum(player) !== 'Bust!') everyoneElseBusted = false; });
+  if (!everyoneElseBusted) dealersTurn(game.table.players[game.table.whoseTurn], game.deck);
   return true;
 };
 

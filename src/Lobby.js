@@ -20,15 +20,25 @@ export const Lobby = props => {
   // Buttons that may or may not show up
   const isInGame = lobStatus === 'in-game';
   const betweenHands = lobStatus === 'between hands';
-  const readyToStart = !(isInGame || betweenHands) && numPlayers === capacity && leaderIdx === players.findIndex(player => player.uid === auth.currentUser.uid);
+  const isLeader = leaderIdx === players.findIndex(player => player.uid === auth.currentUser.uid);
+  const readyToStart = !(isInGame || betweenHands) && numPlayers === capacity && isLeader;
   const startGameButton = readyToStart ? <button onClick={() => startGame(props.lobbyId)}>Start game</button> : null;
   const leaveButton = !isInGame ? <button onClick={() => leaveLobby(props.lobbyId, auth.currentUser.uid)}>Leave lobby</button> : null;
   const gameComp = (isInGame || betweenHands) ? <BlackjackMulti lobbyId={props.lobbyId} lobby={lobby} /> : null;
+
+  const mayChangeLobSize = !isInGame && !betweenHands && isLeader;
+  const expandButton = (mayChangeLobSize && capacity < MAX_LOBBY_SIZE) ? <button onClick={() => expandLobby(props.lobbyId)}>+</button> : null;
+  const shrinkButton = (mayChangeLobSize && capacity > numPlayers) ? <button onClick={() => shrinkLobby(props.lobbyId)}>-</button> : null;
 
   return (
     <div>
       <h1>Lobby: {game}</h1>
       <h2>Players: {numPlayers}/{capacity}</h2>
+      <span>
+        {shrinkButton}
+        <h3>Capacity: {capacity}</h3>
+        {expandButton}
+      </span>
       <ul>{playerList}</ul>
       {startGameButton}
       {leaveButton}
@@ -52,6 +62,8 @@ export const LobbyListing = ({ lobbyId }) => {
   );
 };
 
+const MAX_LOBBY_SIZE = 6;
+
 export const createLobby = async (leaderUid) => {
   // TODO: Let capacity and game be parameters
   const leaderRef = ref(db, `users/${leaderUid}`);
@@ -73,6 +85,28 @@ export const createLobby = async (leaderUid) => {
   });
   return lobbyRef;
 };
+
+export const expandLobby = async (lobbyId, sizeChange = 1) => {
+  await runTransaction(ref(db, `lobbies/${lobbyId}`), lobby => {
+    if (lobby.lobStatus !== 'waiting') return;
+    if (lobby.capacity + sizeChange > MAX_LOBBY_SIZE)
+      lobby.capacity = MAX_LOBBY_SIZE;
+    else
+      lobby.capacity += sizeChange;
+    return lobby;
+  });
+};
+
+export const shrinkLobby = async (lobbyId, sizeChange = 1) => {
+  await runTransaction(ref(db, `lobbies/${lobbyId}`), lobby => {
+    if (lobby.lobStatus !== 'waiting') return;
+    if (lobby.capacity - sizeChange < lobby.numPlayers)
+      lobby.capacity = lobby.numPlayers;
+    else
+      lobby.capacity -= sizeChange;
+    return lobby;
+  });
+}
 
 export const leaveLobby = async (lobbyId, uid) => {
   let success = false;
