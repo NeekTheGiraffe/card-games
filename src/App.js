@@ -12,6 +12,7 @@ import { UserProfile, createUserProfile } from './UserProfile';
 import { ChatRoom } from './ChatRoom';
 import { Lobby, createLobby, LobbyListing } from './Lobby';
 import { useObjectVal } from 'react-firebase-hooks/database';
+import { UserSearch } from './UserSearch';
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth();
@@ -39,6 +40,9 @@ function App() {
       <Blackjack />
       
       {user && <UserProfile uid={user.uid}/>}
+
+      <UserSearch />
+
       <h1>Chat</h1>
       <SignOut />
       <section>
