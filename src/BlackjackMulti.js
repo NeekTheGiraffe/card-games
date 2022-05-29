@@ -87,13 +87,19 @@ export const BlackjackPlayer = props => {
 // TODO: Parametrize numPlayers/lobby size
 
 export const startGame = async (lobbyId) => {
+  let success = false;
+  let numPlayers = -999;
   await runTransaction(ref(db, `lobbies/${lobbyId}`), lobby => {
+    if (lobby.numPlayers !== lobby.capacity) return;
+    success = true;
+    numPlayers = lobby.numPlayers;
     lobby.lobStatus = 'in-game';
     return lobby;
   });
+  if (!success) throw new Error('Lobby is not ready to start game');
   return runTransaction(bjGameRef(lobbyId), game => {
     const gameData = {
-      table: { whoseTurn: -1, numPlayers: 2 }, // table stores all visible data for UI
+      table: { whoseTurn: -1, numPlayers: numPlayers }, // table stores all visible data for UI
       deck: shuffle(freshDeck()) // deck is only read/written when necessary
     };
     gameData.table.deckLength = gameData.deck.length;
@@ -122,7 +128,7 @@ const deal = async (lobbyId) => {
     const cardsPerPlayer = 2;
     if (game.table.deckLength * cardsPerPlayer < (game.table.numPlayers + 1)) return; // Not enough cards to deal
     // Deal all cards
-    game.table.players = [[], [], []];
+    game.table.players = Array.from(Array(game.table.numPlayers + 1), () => []);
     for (let i = 0; i < cardsPerPlayer; i++)
     {
       game.table.players.forEach(player => {
