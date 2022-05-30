@@ -20,24 +20,12 @@ export const auth = getAuth();
 export const db = getDatabase(app);
 
 function App() {
-
-  // Will be an object if user is signed in, null if not
   const [user] = useAuthState(auth);
-  const userInfoRef = user ? ref(db, `users/${user.uid}`) : null;
-  const [userInfo] = useObjectVal(userInfoRef);
-  const lobbyId = userInfo && userInfo.lobbyId;
 
   return (
     <div className="App">
 
       <GameSelector />
-
-      {user && !lobbyId && <LobbyTable/>}
-      {!lobbyId && <button className="btn" onClick={() => createLobby(user.uid)}>Create lobby</button>}
-      {lobbyId && user && <Lobby lobbyId={lobbyId} uid={user.uid}/>}
-    
-
-      <Blackjack />
       
       {user && <UserProfile uid={user.uid}/>}
 
@@ -63,14 +51,14 @@ function SignIn()
   }
 
   return (
-    <button onClick={signInWithGoogle}>Sign in with Google</button>
+    <button className="btn" onClick={signInWithGoogle}>Sign in with Google</button>
   );
 }
 
 function SignOut() {
   return auth.currentUser && (
 
-    <button onClick={() => signOut(auth)}>Sign Out</button>
+    <button className="btn" onClick={() => signOut(auth)}>Sign Out</button>
   );
 }
 

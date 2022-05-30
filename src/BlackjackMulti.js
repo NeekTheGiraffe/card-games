@@ -6,7 +6,7 @@ import { blackjackSum, blackjackSumHidden, dealOne, freshDeck,
   isBlackjack, playable, shuffle, dealerPlayable } from "./cards";
 
 // Requires props of lobby (object) and lobbyId (string)
-// TODO: Stop the entire component from re-rendering after an action is taken
+// TODO: Stop the entire component from re-rendering after an action is taken (fixed?)
 export const BlackjackMulti = props => {
 
   const [table] = useObjectVal(ref(db, `games/blackjackMulti/${props.lobbyId}/table`));

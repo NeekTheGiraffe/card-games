@@ -22,13 +22,13 @@ export const Lobby = props => {
   const betweenHands = lobStatus === 'between hands';
   const isLeader = leaderIdx === players.findIndex(player => player.uid === auth.currentUser.uid);
   const readyToStart = !(isInGame || betweenHands) && numPlayers === capacity && isLeader;
-  const startGameButton = readyToStart ? <button onClick={() => startGame(props.lobbyId)}>Start game</button> : null;
-  const leaveButton = !isInGame ? <button onClick={() => leaveLobby(props.lobbyId, auth.currentUser.uid)}>Leave lobby</button> : null;
+  const startGameButton = readyToStart ? <button className="btn" onClick={() => startGame(props.lobbyId)}>Start game</button> : null;
+  const leaveButton = !isInGame ? <button className="btn" onClick={() => leaveLobby(props.lobbyId, auth.currentUser.uid)}>Leave lobby</button> : null;
   const gameComp = (isInGame || betweenHands) ? <BlackjackMulti lobbyId={props.lobbyId} lobby={lobby} /> : null;
 
   const mayChangeLobSize = !isInGame && !betweenHands && isLeader;
-  const expandButton = (mayChangeLobSize && capacity < MAX_LOBBY_SIZE) ? <button onClick={() => expandLobby(props.lobbyId)}>+</button> : null;
-  const shrinkButton = (mayChangeLobSize && capacity > numPlayers) ? <button onClick={() => shrinkLobby(props.lobbyId)}>-</button> : null;
+  const expandButton = (mayChangeLobSize && capacity < MAX_LOBBY_SIZE) ? <button className="btn" onClick={() => expandLobby(props.lobbyId)}>+</button> : null;
+  const shrinkButton = (mayChangeLobSize && capacity > numPlayers) ? <button className="btn" onClick={() => shrinkLobby(props.lobbyId)}>-</button> : null;
 
   return (
     <div>
@@ -102,7 +102,6 @@ export const createLobby = async (leaderUid) => {
     players: [{ uid: leaderUid, displayName, profilePicture }],
     lobStatus: 'waiting'
   };
-  console.log(lobbyData);
   const lobbyRef = await push(ref(db, 'lobbies'), lobbyData);
   await runTransaction(leaderRef, user => {
     user.lobbyId = lobbyRef.key;
