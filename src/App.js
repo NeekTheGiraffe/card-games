@@ -1,4 +1,4 @@
-import './app.css';
+import './App.css';
 import { firebaseConfig } from './firebaseConfig.js';
 
 import { initializeApp } from 'firebase/app';

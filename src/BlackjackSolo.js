@@ -3,7 +3,8 @@ import React from "react";
 import { blackjackAbsSum, blackjackSum, dealOne, playable, dealerPlayable, isFaceOr10,
   shuffle, freshDeck } from "./cards";
 import { db, auth } from "./App";
-import PlayingCard, { mapCardArrayToComponents } from './Card';
+import PlayingCard from './Card';
+import { BlackjackHand } from "./BlackjackHand";
 
 const defaultRecord = { wins: 0, losses: 0, ties: 0 };
 
@@ -153,27 +154,35 @@ export class BlackjackSolo extends React.Component {
   {
     let { hasDealt, dealer, deck, player, stay } = this.state;
     let done = this.gameIsOver(player, dealer, stay);
-    let dealerSum;
-    if (dealer.length === 0) dealerSum = 0;
-    else if (dealer[1].faceUp) dealerSum = blackjackSum(dealer);
-    else dealerSum = '??';
 
-    const dealerCards = mapCardArrayToComponents(dealer);
-    const playerCards = mapCardArrayToComponents(player);
+    let playerResult = null;
+    if (done)
+    {
+      const winner = this.calculateWinner(player, dealer);
+      if (winner === 'Player!') playerResult = 'win';
+      else if (winner === 'Dealer!') playerResult = 'loss';
+      else if (winner === 'Tie!') playerResult = 'tie';
+    }
 
     return (
-      <div className="blackjack">
-        <h1>Blackjack</h1>
-        <p>Dealer: { dealerSum }<br />{dealerCards}</p>
-        { done && <p>Winner: { this.calculateWinner(player, dealer) }</p>}
-        <p><PlayingCard back /> {deck.length}</p>
-        <span>
-          { !hasDealt && <button className="btn" onClick={() => this.deal()}>Deal</button>}
-          { hasDealt && !done && <button className="btn" onClick={() => this.hit()}>Hit</button>}
-          { hasDealt && !done && <button className="btn" onClick={() => this.stay()}>Stay</button>}
-          { done && <button className="btn" onClick={() => this.nextHand()}>Next hand</button>}
-        </span>
-        <p>Player: {blackjackSum(player)}<br />{playerCards}</p>
+      <div>
+        <div className="float-right">
+          <p className="small text-center m-1">Deck
+            <span className="badge m-1">{deck.length}</span>
+          </p>
+          <PlayingCard back />
+        </div>
+
+        <div className="flex flex-col place-items-center h-full">
+          <BlackjackHand cards={dealer} name="Dealer" top />
+          <div className="btn-group">
+            { !hasDealt && <button className="btn" onClick={() => this.deal()}>Deal</button>}
+            { hasDealt && !done && <button className="btn" onClick={() => this.hit()}>Hit</button>}
+            { hasDealt && !done && <button className="btn" onClick={() => this.stay()}>Stay</button>}
+            { done && <button className="btn" onClick={() => this.nextHand()}>Next hand</button>}
+          </div>
+          <BlackjackHand cards={player} result={playerResult} name="You" />
+        </div>
       </div>
     );
   } 

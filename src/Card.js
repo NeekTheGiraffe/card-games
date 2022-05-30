@@ -1,10 +1,10 @@
 // TODO: Pass other props down like className
 const Card = props => {
-  const { back = false, rank, suit, style = { height: 100 } } = props;
+  const { back = false, rank, suit, className } = props;
   if (back)
-  return <img src={backImgPath} alt="card back" style={style} />;
+  return <img src={backImgPath} alt="card back" className={`h-28 ${className}`} />;
   const imgPath = `${getCardPath(suit, rank)}`
-  return <img src={imgPath} alt={`${rank}${suit}`} style={style} />;
+  return <img src={imgPath} alt={`${rank}${suit}`} className={`h-28 ${className}`} />;
 };
 
 export const mapCardArrayToComponents = cardArr => {
