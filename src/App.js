@@ -3,15 +3,12 @@ import { firebaseConfig } from './firebaseConfig.js';
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, GoogleAuthProvider } from 'firebase/auth';
-import { getDatabase, ref } from 'firebase/database';
+import { getDatabase } from 'firebase/database';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
 
-import { Blackjack } from './Blackjack';
 import { UserProfile, createUserProfile } from './UserProfile';
 import { ChatRoom } from './ChatRoom';
-import { Lobby, createLobby, LobbyTable } from './Lobby';
-import { useObjectVal } from 'react-firebase-hooks/database';
 import { UserSearch } from './UserSearch';
 import { GameSelector } from './GameSelector';
 
@@ -23,19 +20,24 @@ function App() {
   const [user] = useAuthState(auth);
 
   return (
-    <div className="App">
+    <div className="flex w-full">
+      <div className="flex flex-col basis-2/3">
+        <GameSelector />
+        <div className="divider divider-vertical"></div>
+        {user && <UserProfile uid={user.uid}/>}
 
-      <GameSelector />
-      
-      {user && <UserProfile uid={user.uid}/>}
-
-      <UserSearch />
-
-      <h1>Chat</h1>
-      <SignOut />
-      <section>
-        {user ? <ChatRoom /> : <SignIn />}
-      </section>
+        <UserSearch />
+      </div>
+      <div className="divider divider-horizontal"></div>
+      <div className="flex flex-col basis-1/3">
+        
+        { user ? <SignOut /> : <SignIn />}
+        <div className="divider divider-vertical"></div>
+        <h1>Chat</h1>
+        <section>
+          {user ? <ChatRoom /> : null}
+        </section>
+      </div>
     </div>
   );
 }

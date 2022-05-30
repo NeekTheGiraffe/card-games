@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Blackjack } from "./Blackjack";
+import { BlackjackSolo } from "./BlackjackSolo";
 import { MultiplayerSystem } from "./MultiplayerSystem";
 
 export const GameSelector = () => {
 
   const [chosenGame, setChosenGame] = useState('blackjackSolo');
   const onChooseGame = e => setChosenGame(e.target.value);
-  const game = (chosenGame === 'blackjackSolo') ? <Blackjack /> : <MultiplayerSystem />;
+  const game = (chosenGame === 'blackjackSolo') ? <BlackjackSolo /> : <MultiplayerSystem />;
 
   return (
     <div>

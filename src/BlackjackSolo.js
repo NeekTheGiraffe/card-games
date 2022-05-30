@@ -7,7 +7,7 @@ import PlayingCard, { mapCardArrayToComponents } from './Card';
 
 const defaultRecord = { wins: 0, losses: 0, ties: 0 };
 
-export class Blackjack extends React.Component {
+export class BlackjackSolo extends React.Component {
 
   constructor(props)
   {
