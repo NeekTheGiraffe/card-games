@@ -22,13 +22,13 @@ export const Lobby = props => {
   const betweenHands = lobStatus === 'between hands';
   const isLeader = leaderIdx === players.findIndex(player => player.uid === auth.currentUser.uid);
   const readyToStart = !(isInGame || betweenHands) && numPlayers === capacity && isLeader;
-  const startGameButton = readyToStart ? <button onClick={() => startGame(props.lobbyId)}>Start game</button> : null;
-  const leaveButton = !isInGame ? <button onClick={() => leaveLobby(props.lobbyId, auth.currentUser.uid)}>Leave lobby</button> : null;
+  const startGameButton = readyToStart ? <button className="btn" onClick={() => startGame(props.lobbyId)}>Start game</button> : null;
+  const leaveButton = !isInGame ? <button className="btn" onClick={() => leaveLobby(props.lobbyId, auth.currentUser.uid)}>Leave lobby</button> : null;
   const gameComp = (isInGame || betweenHands) ? <BlackjackMulti lobbyId={props.lobbyId} lobby={lobby} /> : null;
 
   const mayChangeLobSize = !isInGame && !betweenHands && isLeader;
-  const expandButton = (mayChangeLobSize && capacity < MAX_LOBBY_SIZE) ? <button onClick={() => expandLobby(props.lobbyId)}>+</button> : null;
-  const shrinkButton = (mayChangeLobSize && capacity > numPlayers) ? <button onClick={() => shrinkLobby(props.lobbyId)}>-</button> : null;
+  const expandButton = (mayChangeLobSize && capacity < MAX_LOBBY_SIZE) ? <button className="btn" onClick={() => expandLobby(props.lobbyId)}>+</button> : null;
+  const shrinkButton = (mayChangeLobSize && capacity > numPlayers) ? <button className="btn" onClick={() => shrinkLobby(props.lobbyId)}>-</button> : null;
 
   return (
     <div>
@@ -47,18 +47,43 @@ export const Lobby = props => {
   );
 };
 
-export const LobbyListing = ({ lobbyId }) => {
+export const LobbyTable = props => {
   
-  const [lobby] = useObjectVal(ref(db, `lobbies/${lobbyId}`));
-  if (!lobby) return null;
-  const { numPlayers, capacity, game } = lobby;
+  const [lobbies] = useObjectVal(ref(db, 'lobbies'));
+  const listings = lobbies && Object.keys(lobbies).map(lobbyId =>
+    <LobbyListing key={lobbyId} lobbyId={lobbyId} lobbyData={lobbies[lobbyId]} />);
+
   return (
-    <div>
-      <span>
-        Lobby {lobbyId}: {game} {numPlayers}/{capacity}
-        <button onClick={() => joinLobby(auth.currentUser.uid, lobbyId)}>Join</button>
-      </span>
+    <div className="w-full">
+      <table className="table w-full">
+        <thead>
+          <tr>
+            <th>Leader</th>
+            <th>Game</th>
+            <th>Players</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {listings}
+        </tbody>
+      </table>
     </div>
+  );
+};
+
+export const LobbyListing = ({ lobbyId, lobbyData }) => {
+  
+  const { numPlayers, capacity, game, leaderIdx, players } = lobbyData;
+  return (
+    <tr>
+      <td>{players[leaderIdx].displayName}</td>
+      <td>{game}</td>
+      <td>{numPlayers}/{capacity}</td>
+      <td>
+        <button className="btn" onClick={() => joinLobby(auth.currentUser.uid, lobbyId)}>Join</button>
+      </td>
+    </tr>
   );
 };
 
@@ -77,7 +102,6 @@ export const createLobby = async (leaderUid) => {
     players: [{ uid: leaderUid, displayName, profilePicture }],
     lobStatus: 'waiting'
   };
-  console.log(lobbyData);
   const lobbyRef = await push(ref(db, 'lobbies'), lobbyData);
   await runTransaction(leaderRef, user => {
     user.lobbyId = lobbyRef.key;

@@ -27,11 +27,10 @@ const UserSearchForm = props => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <label>
-        Search for users:
-        <input type="text" value={formValue} onChange={handleChange} />
+      <label className="input-group">
+        <input type="text" placeholder="Search for users..." value={formValue} onChange={handleChange} />
       </label>
-      <button type="submit">Search</button>
+      <button type="submit" className="btn">Search</button>
     </form>
   );
 };
@@ -40,7 +39,8 @@ const UserSearchResult = props => {
 
   const [users] = useObjectVal(ref(db, 'users'));
   if (props.searchKey == null) return null;
-  const searchResult = searchByUsername(props.searchKey, Object.values(users));
+  const mapped = Object.keys(users).map(key => ({ ...users[key], uid: key}));
+  const searchResult = searchByUsername(props.searchKey, mapped);
   const resultCards = searchResult.map(user => <p key={user.uid}>{user.displayName}</p>);
 
   return (

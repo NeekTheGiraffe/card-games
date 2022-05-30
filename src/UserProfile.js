@@ -8,10 +8,18 @@ export const UserProfile = props =>
   const [record] = useObjectVal(ref(db, `stats/blackjackSolo/${props.uid}`));
 
   return (
-    <div>
-      <h1>My Profile</h1>
-      <p>Display name: {profile && profile.displayName}</p>
-      <p>Blackjack record: {record && record.wins} wins, {record && record.losses} losses, {record && record.ties} ties</p>
+    <div className="hero bg-base-200">
+      <div className="hero-content flex-col">
+        <div className="flex flex-row">
+          <div className="avatar">
+            <div className="w-48 rounded-xl">
+              <img src="cowboys/snake.png" alt="snake" />
+            </div>
+          </div>
+          <h1 className="text-5xl font-bold">{profile && profile.displayName}</h1>
+        </div>
+        <p>Blackjack record: {record && record.wins} wins, {record && record.losses} losses, {record && record.ties} ties</p>
+      </div>
     </div>
   );
 }
