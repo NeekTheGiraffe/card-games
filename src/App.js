@@ -20,7 +20,7 @@ function App() {
   const [user] = useAuthState(auth);
 
   return (
-    <div className="flex w-full">
+    <div className="flex w-full p-6">
       <div className="flex flex-col basis-2/3">
         <GameSelector />
         <div className="divider divider-vertical"></div>
@@ -29,14 +29,11 @@ function App() {
         <UserSearch />
       </div>
       <div className="divider divider-horizontal"></div>
-      <div className="flex flex-col basis-1/3">
+      <div className="flex flex-col basis-1/3 overflow-y-auto">
         
         { user ? <SignOut /> : <SignIn />}
         <div className="divider divider-vertical"></div>
-        <h1>Chat</h1>
-        <section>
-          {user ? <ChatRoom /> : null}
-        </section>
+        {user ? <ChatRoom /> : null}
       </div>
     </div>
   );
