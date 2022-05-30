@@ -13,7 +13,7 @@ export const UserProfile = props =>
         <div className="flex flex-row">
           <div className="avatar">
             <div className="w-48 rounded-xl">
-              <img src="cowboys/snake.png" alt="snake" />
+              <img src={`cowboys/${profile && profile.profilePicture}.png`} alt="snake" />
             </div>
           </div>
           <h1 className="text-5xl font-bold">{profile && profile.displayName}</h1>
@@ -23,6 +23,9 @@ export const UserProfile = props =>
     </div>
   );
 }
+
+const cowboyAnimals = ['snake', 'walrus', 'elephant', 'zebra'];
+const randomAnimal = () => cowboyAnimals[Math.floor(Math.random() * cowboyAnimals.length)];
 
 // If a user profile doesn't exist, then create one
 export const createUserProfile = async (uid) => {
@@ -35,7 +38,7 @@ export const createUserProfile = async (uid) => {
     const profileRef = ref(db, `users/${uid}`);
     const profileData = {
       displayName: generateUsername(),
-      profilePicture: 'snake'
+      profilePicture: randomAnimal()
     };
     await set(profileRef, profileData);
     return "Hello! Created user profile.";
