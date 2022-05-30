@@ -43,7 +43,7 @@ const ChatForm = props =>
   return (
     <form onSubmit={sendMessage}>
       <input value={formValue} onChange={e => setFormValue(e.target.value)}/>
-      <button type="submit">🕊️</button>
+      <button className="btn" type="submit">🕊️</button>
       <div ref={dummy}></div>
     </form>
   );

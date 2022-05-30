@@ -168,10 +168,10 @@ export class Blackjack extends React.Component {
         { done && <p>Winner: { this.calculateWinner(player, dealer) }</p>}
         <p><PlayingCard back /> {deck.length}</p>
         <span>
-          { !hasDealt && <button onClick={() => this.deal()}>Deal</button>}
-          { hasDealt && !done && <button onClick={() => this.hit()}>Hit</button>}
-          { hasDealt && !done && <button onClick={() => this.stay()}>Stay</button>}
-          { done && <button onClick={() => this.nextHand()}>Next hand</button>}
+          { !hasDealt && <button className="btn" onClick={() => this.deal()}>Deal</button>}
+          { hasDealt && !done && <button className="btn" onClick={() => this.hit()}>Hit</button>}
+          { hasDealt && !done && <button className="btn" onClick={() => this.stay()}>Stay</button>}
+          { done && <button className="btn" onClick={() => this.nextHand()}>Next hand</button>}
         </span>
         <p>Player: {blackjackSum(player)}<br />{playerCards}</p>
       </div>

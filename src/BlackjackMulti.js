@@ -29,16 +29,16 @@ export const BlackjackMulti = props => {
   let buttons = null;
   if (isOurTurn) {
     buttons = (<span>
-      <button onClick={() => hit(props.lobbyId)}>Hit</button>
-      <button onClick={() => stay(props.lobbyId)}>Stay</button>
+      <button className="btn" onClick={() => hit(props.lobbyId)}>Hit</button>
+      <button className="btn" onClick={() => stay(props.lobbyId)}>Stay</button>
     </span>);
   } else if (props.lobby.leaderIdx === ourIndex) { // We're the leader
     if (table.whoseTurn === -1) { // About to deal cards
-      buttons = <button onClick={() => deal(props.lobbyId)}>Deal</button>;
+      buttons = <button className="btn" onClick={() => deal(props.lobbyId)}>Deal</button>;
     } else if (table.whoseTurn === table.numPlayers) { // Dealer took their turn; game is over
       buttons = (<span>
-        <button onClick={() => nextHand(props.lobbyId)}>Next hand</button>
-        <button onClick={() => endGame(props.lobbyId)}>End game</button>
+        <button className="btn" onClick={() => nextHand(props.lobbyId)}>Next hand</button>
+        <button className="btn" onClick={() => endGame(props.lobbyId)}>End game</button>
       </span>);
     }
   }

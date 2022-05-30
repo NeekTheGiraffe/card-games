@@ -1,4 +1,4 @@
-import './App.css';
+import './app.css';
 import { firebaseConfig } from './firebaseConfig.js';
 
 import { initializeApp } from 'firebase/app';
@@ -10,9 +10,10 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { Blackjack } from './Blackjack';
 import { UserProfile, createUserProfile } from './UserProfile';
 import { ChatRoom } from './ChatRoom';
-import { Lobby, createLobby, LobbyListing } from './Lobby';
+import { Lobby, createLobby, LobbyTable } from './Lobby';
 import { useObjectVal } from 'react-firebase-hooks/database';
 import { UserSearch } from './UserSearch';
+import { GameSelector } from './GameSelector';
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth();
@@ -22,21 +23,20 @@ function App() {
 
   // Will be an object if user is signed in, null if not
   const [user] = useAuthState(auth);
-  const userInfoRef = user && ref(db, `users/${user.uid}`);
+  const userInfoRef = user ? ref(db, `users/${user.uid}`) : null;
   const [userInfo] = useObjectVal(userInfoRef);
   const lobbyId = userInfo && userInfo.lobbyId;
-
-  const lobbiesRef = user && !lobbyId && ref(db, 'lobbies');
-  const [lobbies] = useObjectVal(lobbiesRef);
-  const lobbyList = lobbies && Object.keys(lobbies).map(lobbyId => <LobbyListing key={lobbyId} lobbyId={lobbyId} />);
 
   return (
     <div className="App">
 
-      {lobbyList}
-      {!lobbyId && <button onClick={() => createLobby(user.uid)}>Create lobby</button>}
+      <GameSelector />
+
+      {user && !lobbyId && <LobbyTable/>}
+      {!lobbyId && <button className="btn" onClick={() => createLobby(user.uid)}>Create lobby</button>}
       {lobbyId && user && <Lobby lobbyId={lobbyId} uid={user.uid}/>}
     
+
       <Blackjack />
       
       {user && <UserProfile uid={user.uid}/>}
