@@ -1,10 +1,12 @@
 import { ref, runTransaction } from "firebase/database"
 import { useObjectVal } from "react-firebase-hooks/database";
 import { auth, db } from "./App";
-import { blackjackSum, blackjackSumHidden, cardsToString, dealOne, freshDeck,
+import { mapCardArrayToComponents } from "./Card";
+import { blackjackSum, blackjackSumHidden, dealOne, freshDeck,
   isBlackjack, playable, shuffle, dealerPlayable } from "./cards";
 
 // Requires props of lobby (object) and lobbyId (string)
+// TODO: Stop the entire component from re-rendering after an action is taken
 export const BlackjackMulti = props => {
 
   const [table] = useObjectVal(ref(db, `games/blackjackMulti/${props.lobbyId}/table`));
@@ -56,7 +58,7 @@ export const BlackjackMulti = props => {
       {/* Dealer */}
       <p>(Dealer icon goes here)<br/>
       Dealer<br/>
-      {cardsToString(dealerCards)}<br/>
+      {mapCardArrayToComponents(dealerCards)}<br/>
       {blackjackSumHidden(dealerCards)}</p>
 
       <p>Deck: {table.deckLength}</p>
@@ -71,7 +73,7 @@ export const BlackjackPlayer = props => {
   return (
     <div>
       {/* Cards */}
-      <p>{cardsToString(props.cards)}<br/>
+      <p>{mapCardArrayToComponents(props.cards)}<br/>
       {/* Sum of the cards */}
       {blackjackSum(props.cards)}<br/>
       {/* Player icon */}

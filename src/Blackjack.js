@@ -1,8 +1,9 @@
 import { ref, runTransaction } from "firebase/database";
 import React from "react";
 import { blackjackAbsSum, blackjackSum, dealOne, playable, dealerPlayable, isFaceOr10,
-  shuffle, freshDeck, cardsToString } from "./cards";
+  shuffle, freshDeck } from "./cards";
 import { db, auth } from "./App";
+import PlayingCard, { mapCardArrayToComponents } from './Card';
 
 const defaultRecord = { wins: 0, losses: 0, ties: 0 };
 
@@ -157,19 +158,22 @@ export class Blackjack extends React.Component {
     else if (dealer[1].faceUp) dealerSum = blackjackSum(dealer);
     else dealerSum = '??';
 
+    const dealerCards = mapCardArrayToComponents(dealer);
+    const playerCards = mapCardArrayToComponents(player);
+
     return (
       <div className="blackjack">
         <h1>Blackjack</h1>
-        <p>Dealer: { dealerSum }<br />{cardsToString(dealer)}</p>
+        <p>Dealer: { dealerSum }<br />{dealerCards}</p>
         { done && <p>Winner: { this.calculateWinner(player, dealer) }</p>}
-        <p>Deck: {deck.length}</p>
+        <p><PlayingCard back /> {deck.length}</p>
         <span>
           { !hasDealt && <button onClick={() => this.deal()}>Deal</button>}
           { hasDealt && !done && <button onClick={() => this.hit()}>Hit</button>}
           { hasDealt && !done && <button onClick={() => this.stay()}>Stay</button>}
           { done && <button onClick={() => this.nextHand()}>Next hand</button>}
         </span>
-        <p>Player: {blackjackSum(player)}<br />{cardsToString(player)}</p>
+        <p>Player: {blackjackSum(player)}<br />{playerCards}</p>
       </div>
     );
   } 
