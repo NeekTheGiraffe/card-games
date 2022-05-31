@@ -130,7 +130,8 @@ const deal = async (lobbyId) => {
     if (game == null) return 0;
     if (game.table.whoseTurn !== -1) return;
     const cardsPerPlayer = 2;
-    if (game.table.deckLength * cardsPerPlayer < (game.table.numPlayers + 1)) return; // Not enough cards to deal
+    if (game.table.deckLength * cardsPerPlayer < (game.table.numPlayers + 1) + 1)
+      game.deck = shuffle(freshDeck()).concat(game.deck); // Add a fresh deck to the bottom
     // Deal all cards
     game.table.players = Array.from(Array(game.table.numPlayers + 1), () => []);
     for (let i = 0; i < cardsPerPlayer; i++)
@@ -174,6 +175,7 @@ const hit = async (lobbyId) => {
     if (game.table.whoseTurn < 0 || game.table.whoseTurn >= game.table.numPlayers) return;
     // Deal one card
     dealOne(game.deck, game.table.players[game.table.whoseTurn], true);
+    if (game.deck.length === 0) game.deck = shuffle(freshDeck());
     // If the current player is done, then move on
     const bjSum = blackjackSum(game.table.players[game.table.whoseTurn])
     if (!playable(bjSum))
@@ -304,6 +306,7 @@ const dealersTurn = (dealer, deck) => {
   while (dealerPlayable(blackjackSum(dealer)))
   {
     dealOne(deck, dealer, true);
+    if (deck.length === 0) deck.push(...shuffle(freshDeck()));
   }
   finishDealersTurn(dealer);
 };
