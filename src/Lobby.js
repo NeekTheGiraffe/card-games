@@ -27,24 +27,35 @@ export const Lobby = props => {
   const gameComp = (isInGame || betweenHands) ? <BlackjackMulti lobbyId={props.lobbyId} lobby={lobby} /> : null;
 
   const mayChangeLobSize = !isInGame && !betweenHands && isLeader;
-  const expandButton = (mayChangeLobSize && capacity < MAX_LOBBY_SIZE) ? <button className="btn" onClick={() => expandLobby(props.lobbyId)}>+</button> : null;
-  const shrinkButton = (mayChangeLobSize && capacity > numPlayers) ? <button className="btn" onClick={() => shrinkLobby(props.lobbyId)}>-</button> : null;
-
   return (
     <div>
       <h1>Lobby: {game}</h1>
-      <h2>Players: {numPlayers}/{capacity}</h2>
-      <span>
-        {shrinkButton}
-        <h3>Capacity: {capacity}</h3>
-        {expandButton}
-      </span>
+      <CapacityHandler numPlayers={numPlayers} capacity={capacity}
+        permission={mayChangeLobSize}
+        onShrink={() => shrinkLobby(props.lobbyId)}
+        onGrow={() => expandLobby(props.lobbyId)} />
       <ul>{playerList}</ul>
       {startGameButton}
       {leaveButton}
       {gameComp}
     </div>
   );
+};
+
+const CapacityHandler = props => {
+  const mayShrink = (props.capacity > props.numPlayers) ? null : "disabled";
+  const mayGrow = (props.capacity < MAX_LOBBY_SIZE) ? null : "disabled";
+  return (
+    <div className="btn-group">
+      {props.permission && <button className="btn" onClick={props.onShrink} disabled={mayShrink}>-</button>}
+      <button className="btn no-animation bg-base-200 hover:bg-base-200">{props.numPlayers}/{props.capacity} players</button>
+      {props.permission && <button className="btn" onClick={props.onGrow} disabled={mayGrow}>+</button>}
+    </div>
+  );
+};
+
+const PlayerList = props => {
+
 };
 
 export const LobbyTable = props => {
@@ -87,7 +98,7 @@ export const LobbyListing = ({ lobbyId, lobbyData }) => {
   );
 };
 
-const MAX_LOBBY_SIZE = 6;
+const MAX_LOBBY_SIZE = 4;
 
 export const createLobby = async (leaderUid) => {
   // TODO: Let capacity and game be parameters

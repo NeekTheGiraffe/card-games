@@ -50,7 +50,7 @@ function SignIn()
   }
 
   return (
-    <button className="btn" onClick={signInWithGoogle}>Sign in with Google</button>
+    <button className="btn btn-primary" onClick={signInWithGoogle}>Sign in with Google</button>
   );
 }
 
