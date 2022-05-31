@@ -5,24 +5,43 @@ import { db } from "./App";
 export const UserProfile = props =>
 {
   const [profile] = useObjectVal(ref(db, `users/${props.uid}`));
-  const [record] = useObjectVal(ref(db, `stats/blackjackSolo/${props.uid}`));
+  const [soloStats] = useObjectVal(ref(db, `stats/blackjackSolo/${props.uid}`));
+  const [multiStats] = useObjectVal(ref(db, `stats/blackjackMulti/${props.uid}`));
+  if (!profile) return null;
+  if (!soloStats || !multiStats) return null;
 
   return (
-    <div className="hero bg-base-200">
-      <div className="hero-content flex-col">
-        <div className="flex flex-row">
-          <div className="avatar">
-            <div className="w-48 rounded-xl">
-              <img src="cowboys/snake.png" alt="snake" />
-            </div>
-          </div>
-          <h1 className="text-5xl font-bold">{profile && profile.displayName}</h1>
+    <div className="bg-base-200 p-4 rounded-xl">
+      <div className="avatar float-left mr-4">
+        <div className="w-48 rounded-xl">
+          <img src={`cowboys/${profile.profilePicture}.png`} alt="snake" />
         </div>
-        <p>Blackjack record: {record && record.wins} wins, {record && record.losses} losses, {record && record.ties} ties</p>
       </div>
+      <h1 className="text-5xl font-bold mb-2">{profile.displayName}</h1>
+      <h2 className="text-xl font-semibold">Solo Blackjack</h2>
+      <StatsBar stats={soloStats} />
+      <h2 className="text-xl font-semibold">Multiplayer Blackjack</h2>
+      <StatsBar stats={multiStats} />
     </div>
   );
 }
+
+const StatsBar = ({ stats }) => {
+  const { wins, losses, ties } = stats;
+  const nGames = wins + losses + ties;
+  return (
+    <div className="relative pt-1">
+      <div className="overflow-hidden mb-4 text-sm flex rounded bg-amber-200">
+        <div style={{ width: `${wins/nGames*100}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-success text-success-content">{wins}</div>
+        <div style={{ width: `${losses/nGames*100}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-error text-error-content">{losses}</div>
+        <div style={{ width: `${ties/nGames*100}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-warning text-warning-content">{ties}</div>
+      </div>
+    </div>
+  );
+};
+
+const cowboyAnimals = ['snake', 'walrus', 'elephant', 'zebra'];
+const randomAnimal = () => cowboyAnimals[Math.floor(Math.random() * cowboyAnimals.length)];
 
 // If a user profile doesn't exist, then create one
 export const createUserProfile = async (uid) => {
@@ -35,7 +54,7 @@ export const createUserProfile = async (uid) => {
     const profileRef = ref(db, `users/${uid}`);
     const profileData = {
       displayName: generateUsername(),
-      profilePicture: 'snake'
+      profilePicture: randomAnimal()
     };
     await set(profileRef, profileData);
     return "Hello! Created user profile.";

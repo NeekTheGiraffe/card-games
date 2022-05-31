@@ -3,8 +3,7 @@ import React from "react";
 import { blackjackAbsSum, blackjackSum, dealOne, playable, dealerPlayable, isFaceOr10,
   shuffle, freshDeck } from "./cards";
 import { db, auth } from "./App";
-import PlayingCard from './Card';
-import { BlackjackHand } from "./BlackjackHand";
+import { BlackjackHand, CardDeck } from "./BlackjackComponents";
 
 const defaultRecord = { wins: 0, losses: 0, ties: 0 };
 
@@ -166,14 +165,9 @@ export class BlackjackSolo extends React.Component {
 
     return (
       <div>
-        <div className="float-right">
-          <p className="small text-center m-1">Deck
-            <span className="badge m-1">{deck.length}</span>
-          </p>
-          <PlayingCard back />
-        </div>
+        <CardDeck className="float-right" size={deck.length} />
 
-        <div className="flex flex-col place-items-center h-full">
+        <div className="flex flex-col place-items-center">
           <BlackjackHand cards={dealer} name="Dealer" top />
           <div className="btn-group">
             { !hasDealt && <button className="btn" onClick={() => this.deal()}>Deal</button>}
