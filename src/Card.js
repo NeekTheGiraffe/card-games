@@ -8,7 +8,7 @@ const Card = props => {
 };
 
 export const mapCardArrayToComponents = cardArr => {
-  return cardArr.map((card, index) => <Card rank={card.rank} suit={card.suit} back={!card.faceUp} key={index} />);
+  return cardArr.map(card => <Card rank={card.rank} suit={card.suit} back={!card.faceUp} key={`${card.rank}${card.suit}`} />);
 };
 
 const suitMap = {

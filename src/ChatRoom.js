@@ -8,6 +8,8 @@ export const ChatRoom = props =>
   const messagesRef = query(ref(db, 'messages'), orderByChild('createdAt'), limitToLast(12));
   const [messages] = useObjectVal(messagesRef);
 
+  if (messages == null) console.log('nasty');
+
   return (
     <div>
       <h1 className="text-3xl text-center font-bold mb-2">Global Chat</h1>

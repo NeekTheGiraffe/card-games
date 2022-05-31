@@ -1,8 +1,8 @@
 import { ref, runTransaction } from "firebase/database"
 import { useObjectVal } from "react-firebase-hooks/database";
 import { auth, db } from "./App";
-import { mapCardArrayToComponents } from "./Card";
-import { blackjackSum, blackjackSumHidden, dealOne, freshDeck,
+import { BlackjackHand, CardDeck } from "./BlackjackComponents";
+import { blackjackSum, dealOne, freshDeck,
   isBlackjack, playable, shuffle, dealerPlayable } from "./cards";
 
 // Requires props of lobby (object) and lobbyId (string)
@@ -10,78 +10,80 @@ import { blackjackSum, blackjackSumHidden, dealOne, freshDeck,
 export const BlackjackMulti = props => {
 
   const [table] = useObjectVal(ref(db, `games/blackjackMulti/${props.lobbyId}/table`));
-  if (!table) return null;
-  let players;
-  if (table.players) {
-    players = table.players.slice(0, -1).map((player, index) => 
-      <BlackjackPlayer key={index} cards={player} displayName={props.lobby.players[index].displayName} />
-    );
-  } else {
-    players = props.lobby.players.map((player, i) => <BlackjackPlayer key={i} cards={[]} displayName={player.displayName} />);
-  }
-  
-  const dealerCards = table.players ? table.players[table.numPlayers] : [];
+  const {lobby} = props;
+  //const [lobby] = useObjectVal(ref(db, `lobbies/${props.lobbyId}`));
 
-  // TODO: Create a different dealer component with a slightly different layout
-  
-  const ourIndex = props.lobby.players.findIndex(player => player.uid === auth.currentUser.uid);
+  //console.log('re-render');
+  if (table == null) console.log('nasty');
+  if (lobby == null) console.log('nasty x2');
+
+  if (!table || !lobby) return null;
+
+  const dealerCards = table.players ? table.players[table.numPlayers] : [];
+  const ourIndex = lobby.players.findIndex(player => player.uid === auth.currentUser.uid);
   const isOurTurn = table.whoseTurn === ourIndex;
-  let buttons = null;
-  if (isOurTurn) {
-    buttons = (<span>
-      <button className="btn" onClick={() => hit(props.lobbyId)}>Hit</button>
-      <button className="btn" onClick={() => stay(props.lobbyId)}>Stay</button>
-    </span>);
-  } else if (props.lobby.leaderIdx === ourIndex) { // We're the leader
-    if (table.whoseTurn === -1) { // About to deal cards
-      buttons = <button className="btn" onClick={() => deal(props.lobbyId)}>Deal</button>;
-    } else if (table.whoseTurn === table.numPlayers) { // Dealer took their turn; game is over
-      buttons = (<span>
-        <button className="btn" onClick={() => nextHand(props.lobbyId)}>Next hand</button>
-        <button className="btn" onClick={() => endGame(props.lobbyId)}>End game</button>
-      </span>);
-    }
-  }
-  let blurb;
-  if (isOurTurn) {
+  let blurb; if (isOurTurn) {
     blurb = 'Your turn';
   } else if (table.whoseTurn === -1) {
     blurb = 'Waiting to deal';
   } else if (table.whoseTurn === table.numPlayers) {
     blurb = 'Waiting for next hand';
   } else {
-    blurb = `${props.lobby.players[table.whoseTurn].displayName}'s turn`;
+    blurb = `${lobby.players[table.whoseTurn].displayName}'s turn`;
   }
+  const results = table.players ?
+    calculateAllWinners(table.players.slice(0, -1), dealerCards, table.whoseTurn === table.numPlayers) :
+    Array.from(lobby.numPlayers, () => null);
 
   return (
     <div>
-      {/* Dealer */}
-      <p>(Dealer icon goes here)<br/>
-      Dealer<br/>
-      {mapCardArrayToComponents(dealerCards)}<br/>
-      {blackjackSumHidden(dealerCards)}</p>
-
-      <p>Deck: {table.deckLength}</p>
-      <p>{blurb}</p>
-      {buttons}
-      <span>{players}</span>
+      <CardDeck className="float-right" size={table.deckLength} />
+      <div className="flex flex-col place-items-center">
+        <BlackjackHand cards={dealerCards} name="Dealer" top />
+        <p className="mb-1">{blurb}</p>
+        <BlackjackButtons table={table} deal={() => deal(props.lobbyId)} leaderIdx={lobby.leaderIdx}
+          hit={() => hit(props.lobbyId)} stay={() => stay(props.lobbyId)} players={lobby.players}
+          nextHand={() => nextHand(props.lobbyId)} endGame={() => endGame(props.lobbyId)}
+        />
+        <PlayerGroup players={lobby.players} playerHands={table.players} results={results} />
+      </div>
     </div>
   );
 };
 
-export const BlackjackPlayer = props => {
-  return (
-    <div>
-      {/* Cards */}
-      <p>{mapCardArrayToComponents(props.cards)}<br/>
-      {/* Sum of the cards */}
-      {blackjackSum(props.cards)}<br/>
-      {/* Player icon */}
-      (Icon goes here)<br/>
-      {/* Player name. TODO: Add tags like 'leader' or 'you' */}
-      {props.displayName}</p>
+const BlackjackButtons = ({ players, table, hit, stay, nextHand, endGame, deal, leaderIdx }) => {
+  if (!table) return null;
+  const ourIndex = players.findIndex(player => player.uid === auth.currentUser.uid);
+  if (table.whoseTurn === ourIndex) return (
+    <div className="btn-group">
+      <button className="btn" onClick={hit}>Hit</button>
+      <button className="btn" onClick={stay}>Stay</button>
     </div>
   );
+  if (leaderIdx !== ourIndex) return null; // Not our turn but not leader
+  // We're the leader
+  if (table.whoseTurn === -1) return ( // About to deal cards
+    <div className="btn-group">
+      <button className="btn" onClick={deal}>Deal</button>
+    </div>
+  );
+  if (table.whoseTurn === table.numPlayers) return ( // Dealer took their turn; game is over
+    <div className="btn-group">
+      <button className="btn btn-primary" onClick={nextHand}>Next hand</button>
+      <button className="btn" onClick={endGame}>End game</button>
+    </div>
+  );
+  return null;
+};
+
+const PlayerGroup = ({ players, playerHands, results }) => {
+
+  if (!players) return null;
+  if (playerHands == null) playerHands = Array.from(Array(players.length), () => []);
+  
+  const blackjackHands = players.map((player, i) => 
+    <BlackjackHand key={player.uid} cards={playerHands[i]} name={player.displayName} result={results[i]} />);
+  return <div className="flex flex-row">{blackjackHands}</div>;
 };
 
 // ----------------------------------------------------------------
@@ -172,19 +174,14 @@ const hit = async (lobbyId) => {
     if (game.table.whoseTurn < 0 || game.table.whoseTurn >= game.table.numPlayers) return;
     // Deal one card
     dealOne(game.deck, game.table.players[game.table.whoseTurn], true);
-    //console.log('got through it');
     // If the current player is done, then move on
     const bjSum = blackjackSum(game.table.players[game.table.whoseTurn])
     if (!playable(bjSum))
     {
-      //console.log(`Not playable; blackjack sum is ${bjSum}`);
       if (nextPlayer(game)) {
-        //console.log('nextPlayer returned true');
         incrementArr = calculateIncrements(game);
       }
-      //console.log('Almost out of the if');
     }
-    //console.log('got through this too');
     game.table.deckLength = game.deck.length;
     return game;
   });
@@ -257,7 +254,7 @@ const incrementArrayToMap = async (arr, lobbyId) => {
 };
 
 // ----- The following functions are synchronous and don't involve the database. -----
-// TODO: Merge this with Blackjack.js to reduce code duplication
+// TODO: Merge this with BlackjackSolo.js to reduce code duplication
 const calculateIncrements = (game) => {
   const increments = [];
   const incrementsMap = { 'Player!': 'wins', 'Dealer!': 'losses', 'Tie!': 'ties' };
@@ -286,6 +283,22 @@ const calculateWinner = (player, dealer) =>
   if (dSum > pSum) return 'Dealer!';
   return 'Tie!';
 }
+
+const calculateAllWinners = (players, dealer, allDone) => {
+  const dSum = blackjackSum(dealer);
+  if (dSum === 'Blackjack!') {
+    return players.map(player => blackjackSum(player) === 'Blackjack!' ? 'tie' : 'loss');
+  }
+  return players.map(player => {
+    const pSum = blackjackSum(player);
+    if (pSum === 'Bust!') return 'loss';
+    if (!allDone) return null;
+    if (dSum === 'Bust!') return 'win';
+    if (pSum > dSum) return 'win';
+    if (dSum > pSum) return 'loss';
+    return 'tie';
+  });
+} 
 
 const dealersTurn = (dealer, deck) => {
   while (dealerPlayable(blackjackSum(dealer)))

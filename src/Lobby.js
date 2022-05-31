@@ -6,37 +6,36 @@ import { startGame, destroyGame, BlackjackMulti } from "./BlackjackMulti";
 export const Lobby = props => {
 
   const [lobby] = useObjectVal(ref(db, `lobbies/${props.lobbyId}`));
-  
+  if(lobby === null) console.log('eww');
+
   if (!lobby) return null;
   
   const { numPlayers, capacity, players, game, leaderIdx, lobStatus } = lobby;
-  let playerList = null;
-  if (players) {
-    playerList = players.map((player, index) => {
-      const text = (leaderIdx === index) ? `${player.displayName} (leader)` : player.displayName;
-      return <li key={player.uid}>{text}</li>;
-    });
-  }
+
   // Buttons that may or may not show up
   const isInGame = lobStatus === 'in-game';
   const betweenHands = lobStatus === 'between hands';
   const isLeader = leaderIdx === players.findIndex(player => player.uid === auth.currentUser.uid);
   const readyToStart = !(isInGame || betweenHands) && numPlayers === capacity && isLeader;
-  const startGameButton = readyToStart ? <button className="btn" onClick={() => startGame(props.lobbyId)}>Start game</button> : null;
+  const startGameButton = readyToStart ? <button className="btn btn-primary" onClick={() => startGame(props.lobbyId)}>Start game</button> : null;
   const leaveButton = !isInGame ? <button className="btn" onClick={() => leaveLobby(props.lobbyId, auth.currentUser.uid)}>Leave lobby</button> : null;
   const gameComp = (isInGame || betweenHands) ? <BlackjackMulti lobbyId={props.lobbyId} lobby={lobby} /> : null;
 
   const mayChangeLobSize = !isInGame && !betweenHands && isLeader;
   return (
-    <div>
-      <h1>Lobby: {game}</h1>
-      <CapacityHandler numPlayers={numPlayers} capacity={capacity}
-        permission={mayChangeLobSize}
-        onShrink={() => shrinkLobby(props.lobbyId)}
-        onGrow={() => expandLobby(props.lobbyId)} />
-      <ul>{playerList}</ul>
-      {startGameButton}
-      {leaveButton}
+    <div className="mt-2">
+      <div>
+        <div className="float-right btn-group">
+          {startGameButton}
+          {leaveButton}
+        </div>
+        <CapacityHandler numPlayers={numPlayers} capacity={capacity}
+          permission={mayChangeLobSize}
+          onShrink={() => shrinkLobby(props.lobbyId)}
+          onGrow={() => expandLobby(props.lobbyId)} />
+        <PlayerList players={players} leaderIdx={leaderIdx} />
+        
+      </div>
       {gameComp}
     </div>
   );
@@ -53,10 +52,23 @@ const CapacityHandler = props => {
     </div>
   );
 };
-
 const PlayerList = props => {
-
+  if (!props.players) return null;
+  return props.players.map((player, index) => 
+    <PlayerListing key={player.uid} profilePicture={player.profilePicture}
+      displayName={player.displayName} leader={index === props.leaderIdx} />
+  );
 };
+const PlayerListing = props => {
+  return (
+    <div className="break-words w-full flex flex-row items-center my-2">
+      <img className="w-12 h-12 mr-2 self-center rounded-full"
+        src={`cowboys/${props.profilePicture}_tiny.png`} alt={props.profilePicture}/>
+      <span className="font-semibold mr-2">{props.displayName}</span>
+      {props.leader && <div className="badge bg-amber-200 text-black">Leader</div>}
+    </div>
+  );
+}
 
 export const LobbyTable = props => {
   
@@ -101,7 +113,6 @@ export const LobbyListing = ({ lobbyId, lobbyData }) => {
 const MAX_LOBBY_SIZE = 4;
 
 export const createLobby = async (leaderUid) => {
-  // TODO: Let capacity and game be parameters
   const leaderRef = ref(db, `users/${leaderUid}`);
   const leaderSnap = await get(leaderRef);
   const { displayName, profilePicture } = leaderSnap.val();
