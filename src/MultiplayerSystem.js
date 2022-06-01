@@ -14,7 +14,7 @@ export const MultiplayerSystem = () => {
   const lobbyId = userInfo && userInfo.lobbyId;
   if (!lobbyId) return (
     <div>
-      <button className="btn btn-primary" onClick={() => createLobby(user.uid)}>Create lobby</button>
+      <button className="btn btn-primary mb-2" onClick={() => createLobby(user.uid)}>Create lobby</button>
       <LobbyTable />
     </div>
   );

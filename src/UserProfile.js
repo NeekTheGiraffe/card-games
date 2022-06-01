@@ -1,6 +1,55 @@
 import { ref, get, set, child } from "firebase/database";
+import { useState } from "react";
 import { useObjectVal } from "react-firebase-hooks/database";
-import { db } from "./App";
+import { auth, db } from "./App";
+import { UserSearch } from "./UserSearch";
+
+export const UserInfoRegion = () => {
+
+  const [state, setState] = useState({
+    selectedTab: 'myprofile',
+    lastSearch: null,
+  });
+  const getButtonClass = buttonName => ((buttonName === state.selectedTab) ? "btn btn-primary" : "btn");
+  const selectTab = tabName => setState({...state, selectedTab: tabName });
+
+  const topBar = (
+    <div className="btn-group mb-2">
+      <button className={getButtonClass('myprofile')}
+        onClick={() => selectTab('myprofile')}>
+        My Profile
+      </button>
+      <button className={getButtonClass('findusers')}
+        onClick={() => selectTab('findusers')}>
+        Find users
+      </button>
+    </div>
+  );
+  if (state.selectedTab === 'myprofile') 
+    return <div>{topBar}<UserProfile uid={auth.currentUser ? auth.currentUser.uid : null} /></div>;
+  if (state.selectedTab === 'findusers') {
+    return <div>{topBar}<UserSearch defaultKey={state.lastSearch}
+      onSearch={key => setState({...state, lastSearch: key})} /></div>;
+  }
+  return (
+    <div>
+      {topBar}
+    </div>
+  );
+};
+
+export const UserListing = ({ displayName, profilePicture, leader, className }) => {
+  let cname = "break-words w-full flex flex-row items-center my-2";
+  if (className) cname =`${cname} ${className}`;
+  return (
+    <div className={cname}>
+      <img className="w-12 h-12 mr-2 self-center rounded-full"
+        src={`cowboys/${profilePicture}_tiny.png`} alt={profilePicture}/>
+      <span className="font-semibold mr-2">{displayName}</span>
+      {leader && <div className="badge bg-amber-200 text-black">Leader</div>}
+    </div>
+  );
+}
 
 export const UserProfile = props =>
 {
