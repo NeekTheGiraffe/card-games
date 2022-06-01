@@ -38,3 +38,20 @@ body {
     font-weight: 300;
     font-family: 'Times New Roman', Times, serif;
   }
+
+  .headerText {
+    font-size: 30px;
+    font-weight: bold;
+    justify-content: center;
+  }
+
+  .statatistics {
+    font-family:'Times New Roman', Times, serif;
+    font-weight:500;
+    font-size: 20px;
+    background-color: blanchedalmond;
+  }
+
+  .startOver {
+    background-color:aquamarine;
+  }

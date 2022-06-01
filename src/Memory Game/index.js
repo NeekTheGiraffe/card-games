@@ -98,6 +98,24 @@ class Board extends React.Component {
         }
     }
 
+    handleStartOver() {
+        for(let i=0; i < 16; i++) {
+            isOver[i]=false;
+        }
+        initialFlip = isOver;
+          
+        this.setState({
+            numberOfClicks: 0,
+            numberOfFound: 0,
+            previousClick2: null,
+            previousClick: null,
+            numbers: randImages(),
+            isFliped: isOver,
+            winner: null,
+            isOver: isOver
+        });
+    }
+
     renderSquare(i) {
         let value;
         if(!this.state.isFliped[i]) {
@@ -127,6 +145,15 @@ class Board extends React.Component {
         value={value}
       /> );
     }
+
+    calculateWinner() {
+        for(let i=0; i < 16; i++){
+            if(!this.state.isOver[i]){
+                return false;
+            }
+        }
+        return true;
+    }
   
     render() {
         let grid = [];
@@ -141,25 +168,47 @@ class Board extends React.Component {
                         {gridrow}
                     </div>);
         }
-            
-        return (<div className='grid'>
-                <div>
+
+        if (!this.calculateWinner()) {    
+            return (<div>
+                    <div className='grid'>
+                        {grid}
+                    </div>
+                    <div className="statatistics">
+                        <p1>
+                        <br></br>
+                            The number of clicks: {this.state.numberOfClicks}
+                        <br></br>
+                            The number of pairs found: {this.state.numberOfFound}
+                        <br></br>
+                            There are {8-this.state.numberOfFound} pairs 
+                            left to find!
+                        <br></br>
+                        <br></br>
+                        </p1>
+                    </div>
+                </div>);
+        }
+        else {
+            return (<div>
+                <div className='grid'>
                     {grid}
                 </div>
-                <div className="statistics">
-                    <p1>
-                    <br></br>
-                        The number of clicks: {this.state.numberOfClicks}
-                    <br></br>
-                        The number of pairs found: {this.state.numberOfFound}
-                    <br></br>
-                        There are {8-this.state.numberOfFound} pairs 
-                        left to find!
-                    <br></br>
+                <div className="statatistics">
+                    <p1>You won the game!
+                        <br></br>
+                        Total number of clicks: 
+                        {this.state.numberOfClicks}
+                        <br></br>
                     </p1>
+                    <button className="startOver"
+                    onClick={() => this.handleStartOver()}>
+                        Start over!
+                    </button>
                 </div>
-            </div>);
-
+            </div>
+          );
+        }
     }
 }
 
@@ -169,8 +218,14 @@ class MemoryGame extends React.Component {
             <div className="game">
                 <div className="game-board">
                     <Board />
-                    <p1 className="rules">
+                    <p1 className="headerText">
                         <br></br>
+                        <br></br>
+                        <br></br>
+                        Game Rules
+                        <br></br>
+                    </p1>
+                    <p1 className="rules">
          The rules for this memory game are pretty simple. 
          The game board contains 8 pairs of two identical 
          cards. Once clicked on the card, it is flipped. If 
