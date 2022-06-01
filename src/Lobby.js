@@ -2,6 +2,7 @@ import { get, push, ref, runTransaction } from "firebase/database";
 import { useObjectVal } from "react-firebase-hooks/database";
 import { db, auth } from "./App";
 import { startGame, destroyGame, BlackjackMulti } from "./BlackjackMulti";
+import { UserListing } from "./UserProfile";
 
 export const Lobby = props => {
 
@@ -55,20 +56,10 @@ const CapacityHandler = props => {
 const PlayerList = props => {
   if (!props.players) return null;
   return props.players.map((player, index) => 
-    <PlayerListing key={player.uid} profilePicture={player.profilePicture}
+    <UserListing key={player.uid} profilePicture={player.profilePicture}
       displayName={player.displayName} leader={index === props.leaderIdx} />
   );
 };
-const PlayerListing = props => {
-  return (
-    <div className="break-words w-full flex flex-row items-center my-2">
-      <img className="w-12 h-12 mr-2 self-center rounded-full"
-        src={`cowboys/${props.profilePicture}_tiny.png`} alt={props.profilePicture}/>
-      <span className="font-semibold mr-2">{props.displayName}</span>
-      {props.leader && <div className="badge bg-amber-200 text-black">Leader</div>}
-    </div>
-  );
-}
 
 export const LobbyTable = props => {
   

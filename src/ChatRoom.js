@@ -48,9 +48,12 @@ const ChatForm = props =>
   }
 
   return (
-    <form onSubmit={sendMessage}>
-      <input value={formValue} onChange={e => setFormValue(e.target.value)}/>
-      <button className="btn" type="submit">🕊️</button>
+    <form onSubmit={sendMessage} className="mt-2">
+      <div className="input-group">
+        <input className="input input-bordered flex-grow" value={formValue}
+          onChange={e => setFormValue(e.target.value)}/>
+        <button className="btn" type="submit">Send</button>
+      </div>
       <div ref={dummy}></div>
     </form>
   );

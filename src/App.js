@@ -7,7 +7,7 @@ import { getDatabase } from 'firebase/database';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
 
-import { UserProfile, createUserProfile } from './UserProfile';
+import { UserProfile, createUserProfile, UserInfoRegion } from './UserProfile';
 import { ChatRoom } from './ChatRoom';
 import { UserSearch } from './UserSearch';
 import { GameSelector } from './GameSelector';
@@ -24,9 +24,8 @@ function App() {
       <div className="flex flex-col basis-2/3">
         <GameSelector />
         <div className="divider divider-vertical"></div>
-        {user && <UserProfile uid={user.uid}/>}
 
-        <UserSearch />
+        <UserInfoRegion />
       </div>
       <div className="divider divider-horizontal"></div>
       <div className="flex flex-col basis-1/3 overflow-y-auto">

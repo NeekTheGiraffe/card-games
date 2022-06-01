@@ -13,7 +13,9 @@ export class BlackjackSolo extends React.Component {
   {
     super(props);
     this.state = {
-      deck: shuffle(freshDeck()),
+      deck: shuffle(freshDeck()), 
+      // Use this as the deck if you want to test running out of cards
+      //Array.from(Array(5), () => ({ suit: '♥', rank: '2', faceUp: true })),
       player: [],
       dealer: [],
       hasDealt: false,
@@ -25,8 +27,7 @@ export class BlackjackSolo extends React.Component {
   {
     let { hasDealt, deck, player, dealer } = this.state;
     if (hasDealt) return;
-    if (deck.length < 4) return; // 2 cards needed for player, 2 for dealer
-    let newDeck = deck.slice()
+    let newDeck = (deck.length < 5) ? shuffle(freshDeck()).concat(deck) : deck.slice();
     let newPlayer = player.slice();
     let newDealer = dealer.slice();
     dealOne(newDeck, newPlayer, true);
@@ -58,7 +59,7 @@ export class BlackjackSolo extends React.Component {
     const { player, deck, dealer, stay } = this.state;
     let di = deck.length - 1;
     let newPlayer = player.concat(deck[di]);
-    let newDeck = deck.slice(0, -1);
+    let newDeck = (deck.length === 1) ? shuffle(freshDeck()) : deck.slice(0, -1);
     let newDealer = dealer.slice();
     let sum = blackjackSum(newPlayer);
     if (sum !== 'Bust!' && !playable(sum))
@@ -93,6 +94,7 @@ export class BlackjackSolo extends React.Component {
     while (dealerPlayable(blackjackSum(dealer)))
     {
       dealOne(deck, dealer, true);
+      if (deck.length === 0) deck.push(...shuffle(freshDeck()));
     }
     this.finishDealersTurn(dealer);
   }
