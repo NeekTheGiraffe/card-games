@@ -94,7 +94,7 @@ export const UserListing = ({ displayName, profilePicture, leader, className }) 
   return (
     <div className={cname}>
       <img className="w-12 h-12 mr-2 self-center rounded-full"
-        src={`cowboys/${profilePicture}_tiny.png`} alt={profilePicture}/>
+        src={`./card-games/cowboys/${profilePicture}_tiny.png`} alt={profilePicture}/>
       <span className="font-semibold mr-2">{displayName}</span>
       {leader && <div className="badge bg-amber-200 text-black">Leader</div>}
     </div>
@@ -112,7 +112,7 @@ export const UserProfile = ({ uid }) =>
     <div className="bg-base-200 p-4 rounded-xl">
       <div className="avatar float-left mr-4">
         <div className="w-48 rounded-xl">
-          <img src={`cowboys/${profile.profilePicture}.png`} alt="snake" />
+          <img src={`./card-games/cowboys/${profile.profilePicture}.png`} alt={profile.profilePicture} />
         </div>
       </div>
       <FollowHandler profileUid={uid} className="float-right" />
@@ -160,7 +160,7 @@ const randomAnimal = () => cowboyAnimals[Math.floor(Math.random() * cowboyAnimal
 
 // If a user profile doesn't exist, then create one
 export const createUserProfile = async (uid) => {
-  console.log(`users/${uid}`);
+  //console.log(`users/${uid}`);
 
   const profileSnap = await get(child(ref(db), `users/${uid}`));
 

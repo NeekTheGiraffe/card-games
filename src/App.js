@@ -7,9 +7,8 @@ import { getDatabase } from 'firebase/database';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
 
-import { UserProfile, createUserProfile, UserInfoRegion } from './UserProfile';
+import { createUserProfile, UserInfoRegion } from './UserProfile';
 import { ChatRoom } from './ChatRoom';
-import { UserSearch } from './UserSearch';
 import { GameSelector } from './GameSelector';
 
 const app = initializeApp(firebaseConfig);
@@ -44,7 +43,7 @@ function SignIn()
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
       .then(res => createUserProfile(res.user.uid)) // Create a new profile for the person logging on, if they don't have one yet
-      .then(res => console.log(res))
+      //.then(res => console.log(res))
       .catch(error => console.error(error.messsage));
   }
 
