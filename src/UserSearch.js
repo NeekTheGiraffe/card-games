@@ -5,14 +5,14 @@ import { useObjectVal } from "react-firebase-hooks/database";
 import { db } from "./App";
 import { UserListing } from "./UserProfile";
 
-export const UserSearch = ({ defaultKey, onSearch }) => {
+export const UserSearch = ({ defaultKey, onSearch, onSelect }) => {
 
   const [searchKey, setSearchKey] = useState(defaultKey);
   const search = sKey => { setSearchKey(sKey); onSearch(sKey); }
   return (
     <div>
       <UserSearchForm onSubmit={formValue => search(formValue)} defaultKey={defaultKey} />
-      <UserSearchResult searchKey={searchKey} />
+      <UserSearchResult searchKey={searchKey} onSelect={onSelect} />
     </div>
   );
 };
@@ -46,7 +46,7 @@ const UserSearchResult = props => {
   const resultCards = searchResult.map(user => (
     <div key={user.uid} className="bg-base-200 rounded-lg mb-1 px-2 flex flex-row items-center">
       <UserListing displayName={user.displayName} profilePicture={user.profilePicture} />
-      <button className="btn">Profile</button>
+      <button onClick={() => props.onSelect(user.uid, user.displayName)} className="btn">Profile</button>
     </div>
   ));
 
