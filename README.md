@@ -11,7 +11,3 @@ npm install
 npm start
 ```
 This will create a copy of the repository on your machine, install the required Node dependencies, and run a development version of the app on [http://localhost:3000](http://localhost:3000).
-
-# Features
-
-* 

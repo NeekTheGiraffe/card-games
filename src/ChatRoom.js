@@ -8,7 +8,7 @@ export const ChatRoom = props =>
   const messagesRef = query(ref(db, 'messages'), orderByChild('createdAt'), limitToLast(12));
   const [messages] = useObjectVal(messagesRef);
 
-  if (messages == null) console.log('nasty');
+  //if (messages == null) console.log('nasty');
 
   return (
     <div>
@@ -68,7 +68,7 @@ const ChatMessage = props =>
   return (
     <div className="break-words w-full inline-block my-1">
       <span className="float-left flex flex-row items-baseline">
-        <img className="w-12 h-12 mr-2 self-center rounded-full" src={`./card-games/cowboys/${profilePicture}_tiny.png`} alt={profilePicture}/>
+        <img className="w-12 h-12 mr-2 self-center rounded-full" src={`./cowboys/${profilePicture}_tiny.png`} alt={profilePicture}/>
       </span>
       <p>
         <span className="font-bold mr-2">{displayName}</span>
