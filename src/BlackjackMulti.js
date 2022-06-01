@@ -16,8 +16,8 @@ export const BlackjackMulti = props => {
   //const [lobby] = useObjectVal(ref(db, `lobbies/${props.lobbyId}`));
 
   //console.log('re-render');
-  if (table == null) console.log('nasty');
-  if (lobby == null) console.log('nasty x2');
+  //if (table == null) console.log('nasty');
+  //if (lobby == null) console.log('nasty x2');
 
   if (!table || !lobby) return null;
 

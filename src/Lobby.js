@@ -13,7 +13,7 @@ export const Lobby = props => {
 
   if (!lobby) return null;
   
-  const { numPlayers, capacity, players, game, leaderIdx, lobStatus } = lobby;
+  const { numPlayers, capacity, players, leaderIdx, lobStatus } = lobby;
 
   // Buttons that may or may not show up
   const isInGame = lobStatus === 'in-game';

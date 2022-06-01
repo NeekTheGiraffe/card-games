@@ -15,7 +15,7 @@ export const mapCardArrayToComponents = cardArr => {
 const suitMap = {
   '♦': 'D', '♣': 'C', '♥': 'H', '♠': 'S'
 };
-const imgDirPath = 'cards';
+const imgDirPath = './cards';
 const backImgPath = `${imgDirPath}/1B.svg`;
 const getCardPath = (suit, rank) => {
   if (rank === '10') rank = 'T';

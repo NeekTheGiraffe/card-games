@@ -139,7 +139,7 @@ export class BlackjackSolo extends React.Component {
       record[result]++;
       return record;
     })
-      .then(res => console.log(`Successfully updated record`))
+      //.then(res => console.log(`Successfully updated record`))
       .catch(err => console.error(err.message));
   }
 
