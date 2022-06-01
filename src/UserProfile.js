@@ -1,5 +1,6 @@
 import { ref, get, set, child } from "firebase/database";
 import { useState } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
 import { useObjectVal } from "react-firebase-hooks/database";
 import { auth, db } from "./App";
 import { UserSearch } from "./UserSearch";
@@ -12,10 +13,11 @@ export const UserInfoRegion = () => {
     otherUid: null,
     otherName: null,
   });
-  const getButtonClass = buttonName => ((buttonName === state.selectedTab) ? "btn btn-primary" : "btn");
+  const [user] = useAuthState(auth);
+  const getButtonClass = buttonName => ((buttonName === state.selectedTab) ? "btn btn-accent" : "btn");
   const selectTab = tabName => setState({...state, selectedTab: tabName });
   const selectUser = (uid, displayName) => {
-    if (auth.currentUser != null && auth.currentUser.uid === uid) {
+    if (user != null && user.uid === uid) {
       setState({...state, selectedTab: 'myprofile'});
       return; // We just selected ourselves from the dropdown
     }
@@ -29,6 +31,10 @@ export const UserInfoRegion = () => {
         onClick={() => selectTab('myprofile')}>
         My Profile
       </button>
+      { user && <button className={getButtonClass('followedusers')}
+        onClick={() => selectTab('followedusers')}>
+        Followed users
+      </button> }
       <button className={getButtonClass('findusers')}
         onClick={() => selectTab('findusers')}>
         Find users
@@ -40,7 +46,7 @@ export const UserInfoRegion = () => {
     </div>
   );
   if (state.selectedTab === 'myprofile') 
-    return <div>{topBar}<UserProfile uid={auth.currentUser ? auth.currentUser.uid : null} /></div>;
+    return <div>{topBar}<UserProfile uid={user ? user.uid : null} /></div>;
   if (state.selectedTab === 'findusers') {
     return <div>{topBar}<UserSearch defaultKey={state.lastSearch}
       onSearch={key => setState({...state, lastSearch: key})}
@@ -49,11 +55,37 @@ export const UserInfoRegion = () => {
   if (state.selectedTab === 'otheruser') {
     return <div>{topBar}<UserProfile uid={state.otherUid} /></div>;
   }
+  if (state.selectedTab === 'followedusers') {
+    return <div>{topBar}<FollowedList followerUid={user.uid}
+      onSelect={(uid, displayName) => selectUser(uid, displayName)} /></div>;
+  }
   return (
     <div>
       {topBar}
     </div>
   );
+};
+
+const FollowedList = ({ followerUid, onSelect }) => {
+
+  const [followedUsers] = useObjectVal(ref(db, `follows/${followerUid}`));
+  if (followedUsers == null) return <p>Follow other users to see them here!</p>;
+
+  const resultCards = Object.keys(followedUsers).map(uid => 
+      <FollowedListHelper key={uid} uid={uid} onSelect={onSelect}
+        className="bg-base-200 rounded-lg mb-1 px-2 flex flex-row items-center" />
+  );
+
+  return <div>{resultCards}</div>;
+};
+
+const FollowedListHelper = ({ uid, onSelect, className }) => {
+  const [user] = useObjectVal(ref(db, `users/${uid}`));
+  if (user == null) return null;
+  return (<div className={className}>
+    <UserListing displayName={user.displayName} profilePicture={user.profilePicture} />
+    <button onClick={() => onSelect(uid, user.displayName)} className="btn">Profile</button>
+  </div>);
 };
 
 export const UserListing = ({ displayName, profilePicture, leader, className }) => {
@@ -69,11 +101,11 @@ export const UserListing = ({ displayName, profilePicture, leader, className }) 
   );
 }
 
-export const UserProfile = props =>
+export const UserProfile = ({ uid }) =>
 {
-  const [profile] = useObjectVal(ref(db, `users/${props.uid}`));
-  const [soloStats] = useObjectVal(ref(db, `stats/blackjackSolo/${props.uid}`));
-  const [multiStats] = useObjectVal(ref(db, `stats/blackjackMulti/${props.uid}`));
+  const [profile] = useObjectVal(ref(db, `users/${uid}`));
+  const [soloStats] = useObjectVal(ref(db, `stats/blackjackSolo/${uid}`));
+  const [multiStats] = useObjectVal(ref(db, `stats/blackjackMulti/${uid}`));
   if (!profile) return <p>Sign in to track your stats across games!</p>;
 
   return (
@@ -83,7 +115,8 @@ export const UserProfile = props =>
           <img src={`cowboys/${profile.profilePicture}.png`} alt="snake" />
         </div>
       </div>
-      <h1 className="text-5xl font-bold mb-2">{profile.displayName}</h1>
+      <FollowHandler profileUid={uid} className="float-right" />
+      <h1 className="text-5xl font-bold mb-2 flex-grow">{profile.displayName}</h1>
       <h2 className="text-xl font-semibold">Solo Blackjack</h2>
       <StatsBar stats={soloStats} name="Solo Blackjack" />
       <h2 className="text-xl font-semibold">Multiplayer Blackjack</h2>
@@ -91,6 +124,20 @@ export const UserProfile = props =>
     </div>
   );
 }
+
+const FollowHandler = ({ profileUid, className }) => {
+
+  const [viewer] = useAuthState(auth);
+  const followPath = viewer ? `follows/${viewer.uid}/${profileUid}` : 'null';
+  const [followStatus] = useObjectVal(ref(db, followPath));
+  if (viewer == null || viewer.uid === profileUid) return null;
+  let cname = followStatus ? "btn btn-outline btn-secondary" : "btn";
+  if (className != null) cname = `${cname} ${className}`;
+  if (followStatus) {
+    return <button className={cname} onClick={() => unfollow(viewer.uid, profileUid)}>Unfollow</button>;
+  }
+  return <button className={cname} onClick={() => follow(viewer.uid, profileUid)}>Follow</button>;
+};
 
 const StatsBar = ({ stats, name }) => {
   if (!stats) return <p>This user hasn't played {name} yet.</p>;
@@ -130,8 +177,6 @@ export const createUserProfile = async (uid) => {
   return "Welcome back!";
 }
 
-
-
 const adjectives = ['Western','Skilled','Enormous','Scorching','Poisonous','Shady','Spurious','Spikey','Golden','Goodshot','Smoking','Ugly','Bad','Broken','Fantastic','SmallTown','Reckless','Fierce','Brave','Dusty','Stompin','Drunk','Yeehawin','Flashy','Fistfightin'];
 const nouns = ['Cowboy','Cowgirl','Wrangler','Cactus','Tumbleweed','Sheriff','Bartender','Tractor','Pistol','Whiskey','DustBunny','Maverick','Boots','Rifle','Spaghetti','Duelist','Drunkard','Cowbell','Ranger','Lasso','HeatWave','GoldMine','Harlot','Cowhide','Stirrup'];
 
@@ -140,4 +185,12 @@ const generateUsername = () => {
   const i2 = Math.floor(Math.random() * nouns.length);
   const i3 = Math.floor(Math.random() * 100);
   return `${adjectives[i1]}${nouns[i2]}${i3}`;
+}
+
+const follow = async (followerUid, followeeUid) => {
+  return set(ref(db, `follows/${followerUid}/${followeeUid}`), true);
+};
+
+const unfollow = async (followerUid, followeeUid) => {
+  return set(ref(db, `follows/${followerUid}/${followeeUid}`), null);
 }

@@ -15,7 +15,7 @@ export const ChatRoom = props =>
       <h1 className="text-3xl text-center font-bold mb-2">Global Chat</h1>
       <div>
         {messages && Object.keys(messages).map(key =>
-          <ChatMessage key={key} message={messages[key]} auth={props.auth}/>)}
+          <ChatMessage key={key} message={messages[key]}/>)}
       </div>
 
       <ChatForm />

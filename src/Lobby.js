@@ -1,4 +1,5 @@
 import { get, push, ref, runTransaction } from "firebase/database";
+import { useAuthState } from "react-firebase-hooks/auth";
 import { useObjectVal } from "react-firebase-hooks/database";
 import { db, auth } from "./App";
 import { startGame, destroyGame, BlackjackMulti } from "./BlackjackMulti";
@@ -7,6 +8,7 @@ import { UserListing } from "./UserProfile";
 export const Lobby = props => {
 
   const [lobby] = useObjectVal(ref(db, `lobbies/${props.lobbyId}`));
+  const [user] = useAuthState(auth);
   if(lobby === null) console.log('eww');
 
   if (!lobby) return null;
@@ -16,10 +18,10 @@ export const Lobby = props => {
   // Buttons that may or may not show up
   const isInGame = lobStatus === 'in-game';
   const betweenHands = lobStatus === 'between hands';
-  const isLeader = leaderIdx === players.findIndex(player => player.uid === auth.currentUser.uid);
+  const isLeader = leaderIdx === players.findIndex(player => player.uid === user.uid);
   const readyToStart = !(isInGame || betweenHands) && numPlayers === capacity && isLeader;
   const startGameButton = readyToStart ? <button className="btn btn-primary" onClick={() => startGame(props.lobbyId)}>Start game</button> : null;
-  const leaveButton = !isInGame ? <button className="btn" onClick={() => leaveLobby(props.lobbyId, auth.currentUser.uid)}>Leave lobby</button> : null;
+  const leaveButton = !isInGame ? <button className="btn" onClick={() => leaveLobby(props.lobbyId, user.uid)}>Leave lobby</button> : null;
   const gameComp = (isInGame || betweenHands) ? <BlackjackMulti lobbyId={props.lobbyId} lobby={lobby} /> : null;
 
   const mayChangeLobSize = !isInGame && !betweenHands && isLeader;
@@ -89,13 +91,15 @@ export const LobbyTable = props => {
 export const LobbyListing = ({ lobbyId, lobbyData }) => {
   
   const { numPlayers, capacity, game, leaderIdx, players } = lobbyData;
+  const [user] = useAuthState(auth);
+
   return (
     <tr>
       <td>{players[leaderIdx].displayName}</td>
       <td>{game}</td>
       <td>{numPlayers}/{capacity}</td>
       <td>
-        <button className="btn" onClick={() => joinLobby(auth.currentUser.uid, lobbyId)}>Join</button>
+        <button className="btn" onClick={() => joinLobby(user.uid, lobbyId)}>Join</button>
       </td>
     </tr>
   );

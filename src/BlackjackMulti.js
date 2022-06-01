@@ -1,4 +1,5 @@
 import { ref, runTransaction } from "firebase/database"
+import { useAuthState } from "react-firebase-hooks/auth";
 import { useObjectVal } from "react-firebase-hooks/database";
 import { auth, db } from "./App";
 import { BlackjackHand, CardDeck } from "./BlackjackComponents";
@@ -10,6 +11,7 @@ import { blackjackSum, dealOne, freshDeck,
 export const BlackjackMulti = props => {
 
   const [table] = useObjectVal(ref(db, `games/blackjackMulti/${props.lobbyId}/table`));
+  const [user] = useAuthState(auth);
   const {lobby} = props;
   //const [lobby] = useObjectVal(ref(db, `lobbies/${props.lobbyId}`));
 
@@ -20,7 +22,7 @@ export const BlackjackMulti = props => {
   if (!table || !lobby) return null;
 
   const dealerCards = table.players ? table.players[table.numPlayers] : [];
-  const ourIndex = lobby.players.findIndex(player => player.uid === auth.currentUser.uid);
+  const ourIndex = lobby.players.findIndex(player => player.uid === user.uid);
   const isOurTurn = table.whoseTurn === ourIndex;
   let blurb; if (isOurTurn) {
     blurb = 'Your turn';
@@ -52,8 +54,10 @@ export const BlackjackMulti = props => {
 };
 
 const BlackjackButtons = ({ players, table, hit, stay, nextHand, endGame, deal, leaderIdx }) => {
+
+  const [user] = useAuthState(auth);
   if (!table) return null;
-  const ourIndex = players.findIndex(player => player.uid === auth.currentUser.uid);
+  const ourIndex = players.findIndex(player => player.uid === user.uid);
   if (table.whoseTurn === ourIndex) return (
     <div className="btn-group">
       <button className="btn" onClick={hit}>Hit</button>
@@ -293,6 +297,7 @@ const calculateAllWinners = (players, dealer, allDone) => {
   }
   return players.map(player => {
     const pSum = blackjackSum(player);
+    if (pSum === 'Blackjack!') return 'win';
     if (pSum === 'Bust!') return 'loss';
     if (!allDone) return null;
     if (dSum === 'Bust!') return 'win';
