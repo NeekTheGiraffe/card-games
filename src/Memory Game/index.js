@@ -10,7 +10,6 @@ import King from './King.png';
 import Queen from './Queen.png';
 import suits from './suits.jpg';
 import ten from './ten.png';
-import circle from './circle.png';
 
 class Square extends React.Component {
     render() {
@@ -240,8 +239,6 @@ class MemoryGame extends React.Component {
 }
 
 const images = {
-    9: <img src={circle} alt="clear"
-    width="100" height="140"/>, 
     0: <img src={cardBack} alt="back of a card"
     width="100" height="140"/>,
     1: <img src={banner} alt="back of a card"
