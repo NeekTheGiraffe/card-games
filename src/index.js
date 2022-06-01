@@ -12,7 +12,7 @@ const Home = () => (
     <div className="menu">
       <div>
         <ul>
-          <NavLink to="/app" className="toolbar">
+          <NavLink to="/" className="toolbar">
             Black Jack
           </NavLink>
           <NavLink to="/memoryGame" className="toolbar">
@@ -21,7 +21,7 @@ const Home = () => (
         </ul>
       </div>
       <Routes>
-        <Route path="/app" element={<App />} />
+        <Route path="/" element={<App />} />
         <Route path="/memoryGame" element={<MemoryGame />} />
       </Routes>
     </div>
