@@ -134,7 +134,7 @@ const deal = async (lobbyId) => {
     if (game == null) return 0;
     if (game.table.whoseTurn !== -1) return;
     const cardsPerPlayer = 2;
-    if (game.table.deckLength * cardsPerPlayer < (game.table.numPlayers + 1) + 1)
+    if (game.table.deckLength < cardsPerPlayer * (game.table.numPlayers + 1) + 1)
       game.deck = shuffle(freshDeck()).concat(game.deck); // Add a fresh deck to the bottom
     // Deal all cards
     game.table.players = Array.from(Array(game.table.numPlayers + 1), () => []);
